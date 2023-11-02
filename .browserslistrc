@@ -1,0 +1,5 @@
+defaults
+chrome >= 79
+firefox >= 59
+safari >= 13
+not IE 11
