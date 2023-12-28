@@ -16,10 +16,7 @@ import { IconPersone } from '@salutejs/plasma-icons';
 import { useQuery } from 'rx-effects-react';
 import styled from 'styled-components/macro';
 
-import {
-  JAZZ_VALUE,
-  JOIN_CONFERENCE_USER_NAME_KEY,
-} from '../../../../shared/constants';
+import { JAZZ_VALUE } from '../../../../shared/constants';
 import { useGlobalContext } from '../../../../shared/contexts/globalContext';
 
 export type UserProfileProps = {
@@ -120,9 +117,7 @@ const ModalAuth: FC<ModalProps> = ({ isOpen, onClose, client }) => {
     return sessionStorage.getItem(JAZZ_VALUE) || '';
   });
 
-  const [userName, setUserName] = useState(() => {
-    return sessionStorage.getItem(JOIN_CONFERENCE_USER_NAME_KEY) || '';
-  });
+  const [userName, setUserName] = useState('');
 
   const handleClose = useCallback(() => {
     onClose();
@@ -145,7 +140,6 @@ const ModalAuth: FC<ModalProps> = ({ isOpen, onClose, client }) => {
         }
 
         sessionStorage.setItem(JAZZ_VALUE, value);
-        sessionStorage.setItem(JOIN_CONFERENCE_USER_NAME_KEY, newUserName);
 
         handleClose();
       })

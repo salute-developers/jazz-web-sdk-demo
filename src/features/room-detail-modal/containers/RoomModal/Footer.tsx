@@ -2,7 +2,6 @@ import { FC, useCallback } from 'react';
 
 import { Button } from '@salutejs/plasma-b2c';
 import { black } from '@salutejs/plasma-tokens-b2c';
-import { useQuery } from 'rx-effects-react';
 import styled from 'styled-components/macro';
 
 import { RoomActions } from '../../../../shared/containers/Actions';
@@ -42,9 +41,6 @@ export const Footer: FC = () => {
   const { room } = useRoomContext();
   const { eventBus } = useGlobalContext();
 
-  const localParticipant = useQuery(room.localParticipant);
-  const userPermissions = useQuery(room.userPermissions);
-
   const handleViewRoomInfo = useCallback(() => {
     eventBus({
       type: 'roomInfoModalOpen',
@@ -63,19 +59,9 @@ export const Footer: FC = () => {
         <CustomGlobalMute room={room} iconColor={black} />
       </LeftSide>
       <RoomActionsWrapper>
-        <RoomActions room={room} />
+        <RoomActions room={room} isShowRaiseHand />
       </RoomActionsWrapper>
-      <RightSide>
-        {userPermissions?.canFinishCall &&
-        localParticipant?.role === 'owner' ? (
-          <Button
-            view="critical"
-            onClick={() => room.leave({ endConference: true })}
-          >
-            Finish for all
-          </Button>
-        ) : null}
-      </RightSide>
+      <RightSide></RightSide>
     </Wrapper>
   );
 };

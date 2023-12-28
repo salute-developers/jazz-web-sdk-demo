@@ -1,5 +1,4 @@
 const prefix = 'sdkapp_';
-export const JOIN_CONFERENCE_USER_NAME_KEY = prefix + 'joinToRoom.userName';
 export const JAZZ_VALUE = prefix + 'joinToRoom.value';
 export const CLIENT_VALUE_KEY = prefix + 'NewClientForm.host';
 export const AUDIO_GAIN_KEY = prefix + 'audioMixer.gain';

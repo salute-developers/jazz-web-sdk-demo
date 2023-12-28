@@ -12,10 +12,25 @@ import {
   IconVideoOff,
 } from '@salutejs/plasma-icons';
 import { useQuery } from 'rx-effects-react';
+import styled from 'styled-components/macro';
 
 import { useGlobalContext } from '../../contexts/globalContext';
+import { useRaiseHand } from '../../hooks/useRaiseHand';
+import { HandIcon } from '../../icons/HandIcon';
 
-export const RoomActions: FC<{ room: JazzRoom }> = ({ room }) => {
+const Hand = styled(HandIcon)<{ 'data-is-active': boolean | undefined }>`
+  height: 24px;
+  width: 24px;
+  color: #000;
+  &[data-is-active] {
+    color: #fff;
+  }
+`;
+
+export const RoomActions: FC<{ room: JazzRoom; isShowRaiseHand?: boolean }> = ({
+  room,
+  isShowRaiseHand = false,
+}) => {
   const { eventBus } = useGlobalContext();
 
   const [isVideoMuted, setIsVideoMuted] = useState(true);
@@ -125,8 +140,24 @@ export const RoomActions: FC<{ room: JazzRoom }> = ({ room }) => {
     }
   }, [room, eventBus, isDisplayMuted]);
 
+  const { isRaisedHand, activity } = useRaiseHand(room);
+
+  const handleRaiseHand = useCallback(async () => {
+    activity.raiseHand(!isRaisedHand);
+  }, [activity, isRaisedHand]);
+
   return (
     <>
+      {isShowRaiseHand && (
+        <Button
+          contentLeft={<Hand data-is-active={isRaisedHand || undefined} />}
+          pin="circle-circle"
+          view={isRaisedHand ? 'primary' : 'secondary'}
+          aria-label="raise hand"
+          title="raise hand"
+          onClick={handleRaiseHand}
+        />
+      )}
       <Button
         contentLeft={isVideoMuted ? <IconVideoOff /> : <IconCameraVideo />}
         pin="circle-circle"

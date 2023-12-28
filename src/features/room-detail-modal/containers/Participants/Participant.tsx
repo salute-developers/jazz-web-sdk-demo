@@ -15,20 +15,34 @@ import styled from 'styled-components/macro';
 import { VideoContainer } from '../../../../shared/components/VideoContainer';
 import { useVideoSources } from '../../../../shared/hooks/useActiveVideoSource';
 import { useAudioSource } from '../../../../shared/hooks/useAudioSource';
+import { useRaiseHand } from '../../../../shared/hooks/useRaiseHand';
 import { useVideoElement } from '../../../../shared/hooks/useVideoElement';
+import { HandIcon } from '../../../../shared/icons/HandIcon';
 import { booleanAttribute } from '../../../../shared/utils/dataAttributes';
 import { useRoomContext } from '../../contexts/roomContext';
 import { MuteButton } from '../MuteButton';
+import { ParticipantReaction } from '../ParticipantReaction';
 
 export type ParticipantProps = {
   participant: JazzRoomParticipant;
 };
 
-const CustomMuteButton = styled(MuteButton)`
+const UpLeftContainer = styled.div`
   position: absolute;
   left: 4px;
   top: 4px;
   z-index: 2;
+  display: grid;
+  gap: 4px;
+  grid-template-columns: auto auto;
+
+  & > * {
+    margin-left: -12px;
+
+    &:first-child {
+      margin-left: 0;
+    }
+  }
 `;
 
 const Wrapper = styled.div<{
@@ -99,6 +113,13 @@ const SecondaryVideoContainerWrapper = styled.div`
   box-shadow: 0 6px 8px;
 `;
 
+const Hand = styled(HandIcon)`
+  height: 24px;
+  width: 24px;
+  color: #fff;
+  padding: 12px;
+`;
+
 export const Participant = forwardRef<HTMLDivElement, ParticipantProps>(
   ({ participant, ...otherProps }, ref) => {
     const { room } = useRoomContext();
@@ -134,15 +155,21 @@ export const Participant = forwardRef<HTMLDivElement, ParticipantProps>(
       ? `(You) ${participant.name}`
       : participant.name;
 
+    const { isRaisedHand } = useRaiseHand(room, participant.id);
+
     return (
       <Wrapper
         data-is-dominant={booleanAttribute(isDominantParticipantId)}
         ref={ref}
         {...otherProps}
       >
-        {!isLocalParticipant && (
-          <CustomMuteButton participantId={participant.id} room={room} />
-        )}
+        <UpLeftContainer>
+          {!isLocalParticipant && (
+            <MuteButton participantId={participant.id} room={room} />
+          )}
+          {isRaisedHand && <Hand />}
+          <ParticipantReaction room={room} participantId={participant.id} />
+        </UpLeftContainer>
         <VideoContainer
           ref={primaryVideoElement.videoRootRef}
           data-paused={booleanAttribute(primaryVideoElement.isVideoPaused)}

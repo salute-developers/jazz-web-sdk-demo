@@ -3,7 +3,9 @@ import { FC } from 'react';
 import { Modal } from '@salutejs/plasma-b2c';
 import styled from 'styled-components/macro';
 
+import { useRoomContext } from '../../contexts/roomContext';
 import { Participants } from '../Participants';
+import { BubblingReactions } from '../ReactionsBubbling';
 
 import { Footer } from './Footer';
 import { Header } from './Header';
@@ -50,6 +52,8 @@ export type RoomModalProps = {
 };
 
 export const RoomModal: FC<RoomModalProps> = ({ isOpen, onClose }) => {
+  const { room } = useRoomContext();
+
   return (
     <StyledModal isOpen={isOpen} onClose={onClose}>
       <Header />
@@ -62,6 +66,7 @@ export const RoomModal: FC<RoomModalProps> = ({ isOpen, onClose }) => {
         </MainContentWrapper>
       </Wrapper>
       <Footer />
+      <BubblingReactions room={room} />
     </StyledModal>
   );
 };

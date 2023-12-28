@@ -1,21 +1,37 @@
-import { FC, useEffect, useState } from 'react';
+import { FC, useEffect, useMemo, useState } from 'react';
 
 import {
+  getActivity,
   handleEvent,
   JazzRoomParticipant,
   JazzRoomParticipantId,
 } from '@salutejs/jazz-sdk-web';
-import { Body2 } from '@salutejs/plasma-b2c';
+import { Body2, Button } from '@salutejs/plasma-b2c';
 import { blackSecondary, dark01, white } from '@salutejs/plasma-tokens-b2c';
 import { useQuery } from 'rx-effects-react';
 import styled from 'styled-components/macro';
 
+import { Reaction } from '../../../../shared/components/Reaction';
 import { VideoContainer } from '../../../../shared/components/VideoContainer';
 import { useVideoSources } from '../../../../shared/hooks/useActiveVideoSource';
 import { useParticipants } from '../../../../shared/hooks/useParticipants';
 import { useVideoElement } from '../../../../shared/hooks/useVideoElement';
 import { booleanAttribute } from '../../../../shared/utils/dataAttributes';
 import { useRoomContext } from '../../contexts/roomContext';
+
+const ButtonCustom = styled(Button)`
+  padding: 8px;
+  height: 40px;
+`;
+
+const ReactionContainer = styled.div`
+  position: absolute;
+  bottom: 0px;
+  right: 0px;
+  gap: 2px;
+  display: grid;
+  grid-auto-flow: column;
+`;
 
 const Wrapper = styled.div`
   position: relative;
@@ -99,6 +115,8 @@ export const MainContent: FC = () => {
   const localParticipant = useQuery(room.localParticipant);
 
   const participants = useParticipants(room);
+
+  const activity = useMemo(() => getActivity(room), [room]);
 
   useEffect(() => {
     if (!localParticipant) {
@@ -205,6 +223,43 @@ export const MainContent: FC = () => {
         isLocalParticipant={isLocalParticipant}
         dominant={dominantParticipant}
       />
+      <ReactionContainer>
+        <ButtonCustom
+          onClick={() => {
+            activity.setReaction('applause');
+          }}
+        >
+          <Reaction reaction="applause" />
+        </ButtonCustom>
+        <ButtonCustom
+          onClick={() => {
+            activity.setReaction('like');
+          }}
+        >
+          <Reaction reaction="like" />
+        </ButtonCustom>
+        <ButtonCustom
+          onClick={() => {
+            activity.setReaction('dislike');
+          }}
+        >
+          <Reaction reaction="dislike" />
+        </ButtonCustom>
+        <ButtonCustom
+          onClick={() => {
+            activity.setReaction('smile');
+          }}
+        >
+          <Reaction reaction="smile" />
+        </ButtonCustom>
+        <ButtonCustom
+          onClick={() => {
+            activity.setReaction('surprise');
+          }}
+        >
+          <Reaction reaction="surprise" />
+        </ButtonCustom>
+      </ReactionContainer>
     </Wrapper>
   );
 };
