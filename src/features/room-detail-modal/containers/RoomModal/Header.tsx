@@ -1,49 +1,39 @@
-import { FC, useCallback, useEffect, useState } from 'react';
+import { FC, useCallback, useMemo } from 'react';
 
-import { handleEvent } from '@salutejs/jazz-sdk-web';
-import { Button, Headline3 } from '@salutejs/plasma-b2c';
+import { getLobby } from '@salutejs/jazz-sdk-web';
+import { Badge, Button, Headline3 } from '@salutejs/plasma-b2c';
 import { IconSettings } from '@salutejs/plasma-icons';
 import styled from 'styled-components/macro';
 
 import { useGlobalContext } from '../../../../shared/contexts/globalContext';
+import { useQuery } from '../../../../shared/hooks/useQuery';
 import { useRoomContext } from '../../contexts/roomContext';
 
 const Wrapper = styled.div`
   width: 100%;
-  height: 80px;
+  height: 88px;
   display: flex;
   align-items: center;
-  padding: 32px 16px;
+  padding: 16px 80px 16px 16px;
   box-sizing: border-box;
   gap: 16px;
+  display: grid;
+  grid-template-columns: auto 1fr auto;
 `;
 
 export const Header: FC = () => {
-  const { room } = useRoomContext();
+  const { room, eventBus: featureEventBus } = useRoomContext();
   const { eventBus } = useGlobalContext();
 
-  const [title, setTitle] = useState('');
+  const title = useQuery(room.settings.title);
 
-  useEffect(() => {
-    if (!room) return;
+  const userPermissions = useQuery(room.userPermissions);
 
-    const settings = room.settings.get();
-    setTitle(settings?.title ?? '');
-
-    const unsubscribe = handleEvent(
-      room.event$,
-      'settingsChanged',
-      ({ payload }) => {
-        if (payload.title) {
-          setTitle(payload.title);
-        }
-      },
-    );
-
-    return () => {
-      unsubscribe();
-    };
+  const lobby = useMemo(() => {
+    return getLobby(room);
   }, [room]);
+
+  const isLobbyEnabled = useQuery(lobby.settings.isLobbyEnabled);
 
   const handleOpenSettings = useCallback(() => {
     eventBus({
@@ -53,6 +43,14 @@ export const Header: FC = () => {
       },
     });
   }, [room, eventBus]);
+
+  const handleOpenLobby = useCallback(() => {
+    featureEventBus({
+      type: 'openLobbyModal',
+    });
+  }, [featureEventBus]);
+
+  const lobbyParticipants = useQuery(lobby.participants);
 
   return (
     <>
@@ -64,6 +62,17 @@ export const Header: FC = () => {
           onClick={handleOpenSettings}
         />
         <Headline3>{title}</Headline3>
+        {isLobbyEnabled && userPermissions.canManageLobby && (
+          <Button
+            contentRight={
+              <Badge size="l" text={`${lobbyParticipants.length}`} />
+            }
+            aria-label="Lobby"
+            title="Lobby"
+            onClick={handleOpenLobby}
+            text="Lobby"
+          />
+        )}
       </Wrapper>
     </>
   );

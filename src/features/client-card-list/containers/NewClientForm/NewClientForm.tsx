@@ -35,19 +35,26 @@ export const NewClientForm: FC = () => {
   );
   const [hostError, setHostError] = useState('');
 
+  const [status, setStatus] = useState<
+    'idle' | 'failure' | 'success' | 'pending'
+  >('idle');
+
   const createClient = useCallback(
     async (host: string) => {
       if (!sdk) return;
+      setStatus('pending');
       try {
         await createJazzClient(sdk, {
           serverUrl: host,
         });
         console.log('Created JazzClient');
+        setStatus('success');
       } catch (error) {
         eventBus({
           type: 'error',
           payload: { title: 'Error create JazzClient' },
         });
+        setStatus('failure');
       }
     },
     [sdk, eventBus],
@@ -88,6 +95,8 @@ export const NewClientForm: FC = () => {
     [handleCreateClient],
   );
 
+  const isPending = status === 'pending';
+
   return (
     <div>
       <Title>Create new JazzClient</Title>
@@ -99,7 +108,12 @@ export const NewClientForm: FC = () => {
           helperText={hostError}
           status={hostError ? 'error' : undefined}
         />
-        <Button type="submit" view="primary">
+        <Button
+          type="submit"
+          disabled={isPending}
+          isLoading={isPending}
+          view="primary"
+        >
           Create JazzClient
         </Button>
       </FieldWrapper>

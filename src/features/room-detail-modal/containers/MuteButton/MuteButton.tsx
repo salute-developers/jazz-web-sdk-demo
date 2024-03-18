@@ -15,7 +15,7 @@ import {
 import { getAudioOutputMixerManager } from '@salutejs/jazz-sdk-web-plugins';
 import { Button } from '@salutejs/plasma-b2c';
 import { IconProps, IconVolumeOff, IconVolumeUp } from '@salutejs/plasma-icons';
-import { white } from '@salutejs/plasma-tokens-b2c';
+import { white } from '@salutejs/plasma-tokens';
 import styled from 'styled-components/macro';
 
 const Action = styled(Button)``;

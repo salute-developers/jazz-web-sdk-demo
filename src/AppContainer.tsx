@@ -1,13 +1,13 @@
 import { FC, useEffect, useState } from 'react';
 
-import { createJazzWebSdk, SDK_VERSION } from '@salutejs/jazz-sdk-web';
+import { createJazzWebSdk, JazzSdk, SDK_VERSION } from '@salutejs/jazz-sdk-web';
 import {
   audioOutputMixerPlugin,
   logsPlugin,
   videoElementPoolPlugin,
 } from '@salutejs/jazz-sdk-web-plugins';
 import { BodyM, ModalsProvider } from '@salutejs/plasma-b2c';
-import { surfaceSolid02, tertiary } from '@salutejs/plasma-tokens-b2c/colors';
+import { surfaceSolid02, tertiary } from '@salutejs/plasma-tokens';
 import styled from 'styled-components/macro';
 
 import { ErrorModal } from './features/error-modal';
@@ -45,7 +45,7 @@ const SDKInfoText = styled(BodyM)`
   }
 `;
 
-const ContentWrapper = styled.div`
+const RootContent = styled.div`
   display: grid;
   grid-template-columns: 1fr auto;
   gap: 32px;
@@ -61,18 +61,24 @@ const RightContent = styled.div`
   display: flex;
   flex-direction: column;
   gap: 32px;
+  max-width: 570px;
+  width: 570px;
 `;
 
+const STATUS: Record<InitSDKStatus, string> = {
+  fail: '🔴',
+  process: '🟠',
+  success: '🟢',
+};
+
 const App: FC = () => {
-  const { setSdk, eventBus } = useGlobalContext();
+  const { setSdk, eventBus, sdk, devices } = useGlobalContext();
 
   const [status, setStatus] = useState<InitSDKStatus>('process');
 
-  const { audioInputDeviceId, audioOutputDeviceId, videoInputDeviceId } =
-    useDeviceSync();
-
   useEffect(() => {
     console.log('Start creating sdk...');
+    let jazzSdk: JazzSdk | undefined;
     // create sdk
     createJazzWebSdk({
       userAgent: 'Jazz Test App',
@@ -81,14 +87,16 @@ const App: FC = () => {
         audioOutputMixerPlugin(),
         logsPlugin({
           logLevel: 'debug',
+          isEnableStdout: true,
         }),
       ],
-      audioInputDeviceId,
-      audioOutputDeviceId,
-      videoInputDeviceId,
+      audioInputDeviceId: devices.getAudioInput(),
+      audioOutputDeviceId: devices.getAudioOutput(),
+      videoInputDeviceId: devices.getVideoInput(),
     })
-      .then(async (sdk) => {
+      .then((sdk) => {
         console.log('Sdk is created');
+        jazzSdk = sdk;
         setSdk(sdk);
         setStatus('success');
       })
@@ -97,35 +105,41 @@ const App: FC = () => {
         setStatus('fail');
         eventBus({ type: 'error', payload: { title: 'fail create sdk' } });
       });
-  }, [
-    setSdk,
-    eventBus,
-    audioInputDeviceId,
-    audioOutputDeviceId,
-    videoInputDeviceId,
-  ]);
+
+    return () => {
+      setSdk(undefined);
+      setTimeout(() => {
+        jazzSdk?.destroy();
+      }, 0);
+    };
+  }, [setSdk, eventBus, devices]);
 
   return (
     <Root>
       <SDKInfo>
         <SDKInfoText>SDK version: {SDK_VERSION}</SDKInfoText>
-        <SDKInfoText>Init SDK status: {status}</SDKInfoText>
+        <SDKInfoText>SDK status: {STATUS[status]}</SDKInfoText>
       </SDKInfo>
-      {status === 'success' && (
-        <ContentWrapper>
-          <LeftContent>
-            <ClientCardListWidget />
-          </LeftContent>
-          <RightContent>
-            <Lobby />
-            <AudioGainSettings />
-            <MediaSettings />
-          </RightContent>
-        </ContentWrapper>
-      )}
-
+      {sdk && <Content />}
       <ErrorModal />
     </Root>
+  );
+};
+
+const Content: FC = () => {
+  useDeviceSync();
+
+  return (
+    <RootContent>
+      <LeftContent>
+        <ClientCardListWidget />
+      </LeftContent>
+      <RightContent>
+        <Lobby />
+        <AudioGainSettings />
+        <MediaSettings />
+      </RightContent>
+    </RootContent>
   );
 };
 

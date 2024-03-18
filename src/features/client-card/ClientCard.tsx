@@ -9,7 +9,7 @@ import {
 } from '@salutejs/jazz-sdk-web';
 import { Body2, Button } from '@salutejs/plasma-b2c';
 import { IconPlus } from '@salutejs/plasma-icons';
-import { tertiary, white } from '@salutejs/plasma-tokens-b2c';
+import { tertiary, white } from '@salutejs/plasma-tokens';
 import uniqueId from 'lodash/uniqueId';
 import styled from 'styled-components/macro';
 
@@ -154,33 +154,34 @@ export const ClientCard: ClientCardComponent = ({
 
       console.log('Connecting to room', room);
 
-      const [
-        audioStream,
-        videoStream,
-      ] = await Promise.all([
-        localDevices.getSelectedAudioInputStream(),
-        localDevices.getSelectedVideoInputStream(),
-      ]);
+      try {
+        const [audioStream, videoStream] = await Promise.all([
+          localDevices.getSelectedAudioInputStream(),
+          localDevices.getSelectedVideoInputStream(),
+        ]);
 
-      console.log('Add mediaStreams to room');
+        console.log('Add mediaStreams to room');
 
-      room.setUserAudioInput(audioStream);
-      room.setUserVideoInput(videoStream);
+        room.setUserAudioInput(audioStream);
+        room.setUserVideoInput(videoStream);
 
-      const releaseMedia = () => {
-        console.log('Release mediaStreams');
+        const releaseMedia = () => {
+          console.log('Release mediaStreams');
 
-        localDevices.releaseMediaStream(audioStream);
-        localDevices.releaseMediaStream(videoStream);
+          localDevices.releaseMediaStream(audioStream);
+          localDevices.releaseMediaStream(videoStream);
 
-        const displayStream = room.displayStream.get();
+          const displayStream = room.displayStream.get();
 
-        if (displayStream) {
-          localDevices.releaseMediaStream(displayStream);
-        }
-      };
+          if (displayStream) {
+            localDevices.releaseMediaStream(displayStream);
+          }
+        };
 
-      handleEvent(room.event$, 'destroy', releaseMedia, true);
+        handleEvent(room.event$, 'destroy', releaseMedia, true);
+      } catch (error) {
+        console.log('Media permission denied');
+      }
     },
     [client, localDevices, handleCloseJoinToConferenceModal, eventBus],
   );
@@ -192,6 +193,8 @@ export const ClientCard: ClientCardComponent = ({
       client.conferences
         .createConference({
           title: form.conferenceName,
+          isLobbyEnabled: form.isLobbyEnabled,
+          isGuestEnabled: form.isGuestEnabled,
         })
         .then((data) => {
           console.log('Create conference', data);

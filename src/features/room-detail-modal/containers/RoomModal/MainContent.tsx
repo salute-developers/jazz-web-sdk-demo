@@ -2,22 +2,28 @@ import { FC, useEffect, useMemo, useState } from 'react';
 
 import {
   getActivity,
-  handleEvent,
+  JazzRoom,
   JazzRoomParticipant,
-  JazzRoomParticipantId,
 } from '@salutejs/jazz-sdk-web';
 import { Body2, Button } from '@salutejs/plasma-b2c';
-import { blackSecondary, dark01, white } from '@salutejs/plasma-tokens-b2c';
-import { useQuery } from 'rx-effects-react';
+import { blackSecondary, dark01, white } from '@salutejs/plasma-tokens';
 import styled from 'styled-components/macro';
 
 import { Reaction } from '../../../../shared/components/Reaction';
 import { VideoContainer } from '../../../../shared/components/VideoContainer';
 import { useVideoSources } from '../../../../shared/hooks/useActiveVideoSource';
 import { useParticipants } from '../../../../shared/hooks/useParticipants';
+import { useQuery } from '../../../../shared/hooks/useQuery';
 import { useVideoElement } from '../../../../shared/hooks/useVideoElement';
 import { booleanAttribute } from '../../../../shared/utils/dataAttributes';
 import { useRoomContext } from '../../contexts/roomContext';
+import { PermissionRequests } from '../PermissionRequests';
+
+const PermissionRequestsCustom = styled(PermissionRequests)`
+  height: 100%;
+  width: 520px;
+  margin-left: auto;
+`;
 
 const ButtonCustom = styled(Button)`
   padding: 8px;
@@ -106,52 +112,15 @@ const Placeholder: FC<PlaceholderProps> = ({
 export const MainContent: FC = () => {
   const { room } = useRoomContext();
 
-  const [dominantParticipantId, setDominantParticipantId] = useState<
-    JazzRoomParticipantId | undefined
-  >();
-
   const [isSwapped, setSwap] = useState(false);
 
   const localParticipant = useQuery(room.localParticipant);
 
   const participants = useParticipants(room);
 
-  const activity = useMemo(() => getActivity(room), [room]);
+  const visibleParticipantId = participants[0]?.id;
 
-  useEffect(() => {
-    if (!localParticipant) {
-      return;
-    }
-    if (participants.length === 1) {
-      setDominantParticipantId(localParticipant.id);
-    } else if (participants.length === 2) {
-      setDominantParticipantId(
-        participants.find(
-          (participant) => participant.id !== localParticipant.id,
-        )?.id,
-      );
-    }
-  }, [participants, localParticipant]);
-
-  useEffect(() => {
-    setDominantParticipantId(
-      room.dominantParticipantId.get() || room.participants.get()[0]?.id,
-    );
-
-    const unsubscribeDominantParticipantId = handleEvent(
-      room.event$,
-      'dominantSpeakerChanged',
-      ({ payload }) => {
-        setDominantParticipantId(payload.id);
-      },
-    );
-
-    return () => {
-      unsubscribeDominantParticipantId();
-    };
-  }, [room]);
-
-  const { primary, secondary } = useVideoSources(dominantParticipantId);
+  const { primary, secondary } = useVideoSources(visibleParticipantId);
 
   useEffect(() => {
     if (!secondary) {
@@ -162,7 +131,7 @@ export const MainContent: FC = () => {
   const canSwapped = Boolean(secondary);
 
   const primaryVideoElement = useVideoElement<HTMLDivElement>({
-    participantId: dominantParticipantId,
+    participantId: visibleParticipantId,
     room,
     source: canSwapped ? (isSwapped ? secondary : primary) : primary,
     height: 800,
@@ -170,18 +139,18 @@ export const MainContent: FC = () => {
   });
 
   const secondaryVideoElement = useVideoElement<HTMLDivElement>({
-    participantId: dominantParticipantId,
+    participantId: visibleParticipantId,
     room,
     source: canSwapped ? (!isSwapped ? secondary : primary) : secondary,
     height: 200,
     quality: 'medium',
   });
 
-  const dominantParticipant = participants.find(
-    ({ id }) => dominantParticipantId === id,
+  const visibleParticipant = participants.find(
+    ({ id }) => visibleParticipantId === id,
   );
   const isLocalParticipant = localParticipant
-    ? localParticipant.id === dominantParticipant?.id
+    ? localParticipant.id === visibleParticipant?.id
     : false;
 
   return (
@@ -221,45 +190,60 @@ export const MainContent: FC = () => {
       <Placeholder
         isVideoMuted={primaryVideoElement.isVideoMuted}
         isLocalParticipant={isLocalParticipant}
-        dominant={dominantParticipant}
+        dominant={visibleParticipant}
       />
-      <ReactionContainer>
-        <ButtonCustom
-          onClick={() => {
-            activity.setReaction('applause');
-          }}
-        >
-          <Reaction reaction="applause" />
-        </ButtonCustom>
-        <ButtonCustom
-          onClick={() => {
-            activity.setReaction('like');
-          }}
-        >
-          <Reaction reaction="like" />
-        </ButtonCustom>
-        <ButtonCustom
-          onClick={() => {
-            activity.setReaction('dislike');
-          }}
-        >
-          <Reaction reaction="dislike" />
-        </ButtonCustom>
-        <ButtonCustom
-          onClick={() => {
-            activity.setReaction('smile');
-          }}
-        >
-          <Reaction reaction="smile" />
-        </ButtonCustom>
-        <ButtonCustom
-          onClick={() => {
-            activity.setReaction('surprise');
-          }}
-        >
-          <Reaction reaction="surprise" />
-        </ButtonCustom>
-      </ReactionContainer>
+      <PermissionRequestsCustom />
+      <Reactions room={room} />
     </Wrapper>
+  );
+};
+
+const Reactions: FC<{ room: JazzRoom }> = ({ room }) => {
+  const activity = useMemo(() => getActivity(room), [room]);
+  const userPermissions = useQuery(room.userPermissions);
+
+  return (
+    <ReactionContainer>
+      <ButtonCustom
+        disabled={!userPermissions.canSendReaction}
+        onClick={() => {
+          activity.setReaction('applause');
+        }}
+      >
+        <Reaction reaction="applause" />
+      </ButtonCustom>
+      <ButtonCustom
+        disabled={!userPermissions.canSendReaction}
+        onClick={() => {
+          activity.setReaction('like');
+        }}
+      >
+        <Reaction reaction="like" />
+      </ButtonCustom>
+      <ButtonCustom
+        disabled={!userPermissions.canSendReaction}
+        onClick={() => {
+          activity.setReaction('dislike');
+        }}
+      >
+        <Reaction reaction="dislike" />
+      </ButtonCustom>
+      <ButtonCustom
+        disabled={!userPermissions.canSendReaction}
+        onClick={() => {
+          activity.setReaction('smile');
+        }}
+      >
+        <Reaction reaction="smile" />
+      </ButtonCustom>
+      <ButtonCustom
+        disabled={!userPermissions.canSendReaction}
+        onClick={() => {
+          activity.setReaction('surprise');
+        }}
+      >
+        <Reaction reaction="surprise" />
+      </ButtonCustom>
+    </ReactionContainer>
   );
 };

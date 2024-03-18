@@ -7,16 +7,30 @@ import { AudioGainSettings } from '../../../../shared/containers/AudioSettings';
 import { MediaSettings } from '../../../../shared/containers/MediaSettings';
 import { useGlobalContext } from '../../../../shared/contexts/globalContext';
 import { useRoomContext } from '../../contexts/roomContext';
+import { OptionsPermissions } from '../OptionsPermissions';
+import { OptionsSettings } from '../OptionsSettings';
+import { TitleSettings } from '../TitleSettings';
 import { ViewVideo } from '../ViewVideo';
 
-const Title = styled(Headline3)`
-  margin-bottom: 16px;
+const ModalBody = styled.div`
+  display: grid;
+  gap: 32px;
+`;
+
+const StyledModal = styled(Modal)`
+  width: 900px;
 `;
 
 const Wrapper = styled.div`
-  display: flex;
-  flex-direction: column;
-  gap: 32px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+
+  > div {
+    display: grid;
+    gap: 24px;
+    grid-auto-rows: min-content;
+  }
 `;
 
 export const RoomSettingsModal: FC = () => {
@@ -40,14 +54,23 @@ export const RoomSettingsModal: FC = () => {
   const handleClose = useCallback(() => setIsOpen(false), []);
 
   return (
-    <Modal isOpen={isOpen} onClose={handleClose}>
-      <Title>Room Settings</Title>
+    <StyledModal isOpen={isOpen} onClose={handleClose}>
+      <ModalBody>
+        <Headline3>Room Settings</Headline3>
 
-      <Wrapper>
-        <ViewVideo />
-        <AudioGainSettings />
-        <MediaSettings />
-      </Wrapper>
-    </Modal>
+        <Wrapper>
+          <div>
+            <TitleSettings />
+            <OptionsSettings />
+            <OptionsPermissions />
+          </div>
+          <div>
+            <ViewVideo />
+            <AudioGainSettings />
+            <MediaSettings />
+          </div>
+        </Wrapper>
+      </ModalBody>
+    </StyledModal>
   );
 };

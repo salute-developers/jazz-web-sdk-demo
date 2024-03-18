@@ -1,4 +1,4 @@
-import { dark01 } from '@salutejs/plasma-tokens-b2c';
+import { dark01 } from '@salutejs/plasma-tokens';
 import styled from 'styled-components/macro';
 
 export const VideoContainer = styled.div<{

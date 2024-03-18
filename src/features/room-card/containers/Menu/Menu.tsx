@@ -7,10 +7,11 @@ import {
   DropdownProps,
 } from '@salutejs/plasma-b2c';
 import { IconMoreHorizontal } from '@salutejs/plasma-icons';
-import { white } from '@salutejs/plasma-tokens-b2c';
+import { white } from '@salutejs/plasma-tokens';
 import styled from 'styled-components/macro';
 
 import { useGlobalContext } from '../../../../shared/contexts/globalContext';
+import { useQuery } from '../../../../shared/hooks/useQuery';
 import { useRoomContext } from '../../contexts/roomContext';
 
 const StyledDropdown = styled(Dropdown)`
@@ -23,6 +24,10 @@ const StyledDropdown = styled(Dropdown)`
 export const Menu: FC = () => {
   const { eventBus } = useGlobalContext();
   const { room } = useRoomContext();
+
+  const localParticipant = useQuery(room.localParticipant);
+
+  const userPermissions = useQuery(room.userPermissions);
 
   const menuItems = useMemo<DropdownItemProps[]>(() => {
     const menuArr = [
@@ -38,8 +43,16 @@ export const Menu: FC = () => {
       },
     ];
 
+    if (userPermissions?.canFinishCall && localParticipant?.role === 'owner') {
+      menuArr.push({
+        index: 2,
+        label: 'Finish for all',
+        value: 'finishForAll',
+      });
+    }
+
     return menuArr;
-  }, []);
+  }, [localParticipant, userPermissions]);
 
   const handleSelect = useCallback<
     Exclude<DropdownProps['onItemSelect'], undefined>

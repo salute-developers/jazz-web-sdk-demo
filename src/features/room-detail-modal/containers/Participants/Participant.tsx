@@ -3,29 +3,39 @@ import { forwardRef } from 'react';
 import { JazzRoomParticipant } from '@salutejs/jazz-sdk-web';
 import {
   IconCameraVideo,
+  IconDisplay,
   IconMic,
   IconMicOff,
   IconPersone,
   IconVideoOff,
 } from '@salutejs/plasma-icons';
-import { blackSecondary, white } from '@salutejs/plasma-tokens-b2c';
-import { useQuery } from 'rx-effects-react';
+import { black, blackSecondary, white } from '@salutejs/plasma-tokens';
 import styled from 'styled-components/macro';
 
 import { VideoContainer } from '../../../../shared/components/VideoContainer';
 import { useVideoSources } from '../../../../shared/hooks/useActiveVideoSource';
 import { useAudioSource } from '../../../../shared/hooks/useAudioSource';
+import { useQuery } from '../../../../shared/hooks/useQuery';
 import { useRaiseHand } from '../../../../shared/hooks/useRaiseHand';
 import { useVideoElement } from '../../../../shared/hooks/useVideoElement';
 import { HandIcon } from '../../../../shared/icons/HandIcon';
 import { booleanAttribute } from '../../../../shared/utils/dataAttributes';
 import { useRoomContext } from '../../contexts/roomContext';
 import { MuteButton } from '../MuteButton';
+import { ParticipantModeratorDropdown } from '../ParticipantModeratorDropdown';
 import { ParticipantReaction } from '../ParticipantReaction';
 
 export type ParticipantProps = {
   participant: JazzRoomParticipant;
 };
+
+const ParticipantModeratorDropdownCustom = styled(ParticipantModeratorDropdown)`
+  position: absolute;
+  z-index: 100;
+  right: 0;
+  top: 0;
+  display: none;
+`;
 
 const UpLeftContainer = styled.div`
   position: absolute;
@@ -45,6 +55,10 @@ const UpLeftContainer = styled.div`
   }
 `;
 
+const IconPersoneCustom = styled(IconPersone)`
+  color: rgb(94, 148, 255);
+`;
+
 const Wrapper = styled.div<{
   'data-is-dominant': boolean | undefined;
 }>`
@@ -60,32 +74,50 @@ const Wrapper = styled.div<{
   &[data-is-dominant] {
     border-color: #3fa058;
   }
+
+  &:hover {
+    ${ParticipantModeratorDropdownCustom} {
+      display: block;
+    }
+  }
 `;
 
-const ParticipantInfo = styled.div`
+const ParticipantInfo = styled.div<{
+  'data-is-fill': boolean | undefined;
+}>`
   width: 100%;
   position: absolute;
   bottom: 0;
   color: ${white};
   padding: 4px 16px;
   box-sizing: border-box;
-  display: flex;
-  align-items: center;
-  gap: 12px;
+  display: grid;
+  gap: 4px;
   background: ${blackSecondary};
-  justify-content: space-between;
+  grid-template-columns: 1fr auto;
+
+  &[data-is-fill] {
+    background: ${black};
+    top: 0;
+    padding-top: 60px;
+    gap: 16px;
+    grid-template-columns: auto;
+    grid-auto-rows: min-content;
+    justify-content: center;
+  }
 `;
 
 const OwnerRole = styled.div`
   position: absolute;
-  right: 4px;
-  top: 4px;
+  z-index: 1;
+  right: 0;
+  top: 0;
   height: 24px;
   width: 24px;
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 50px;
+  border-radius: 0 0 0 12px;
   box-sizing: border-box;
   background: ${blackSecondary};
 `;
@@ -94,12 +126,14 @@ const UserName = styled.div`
   text-overflow: ellipsis;
   overflow-x: hidden;
   white-space: nowrap;
+  text-align: left;
 `;
 
 const Indicators = styled.div`
   display: grid;
   gap: 4px;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: min-content min-content min-content;
+  justify-content: center;
 `;
 
 const SecondaryVideoContainerWrapper = styled.div`
@@ -157,6 +191,15 @@ export const Participant = forwardRef<HTMLDivElement, ParticipantProps>(
 
     const { isRaisedHand } = useRaiseHand(room, participant.id);
 
+    const isScreenShareShow =
+      primaryVideoElement.source === 'display' &&
+      !primaryVideoElement.isVideoMuted;
+
+    const isVideoMuted =
+      primaryVideoElement.source === 'user'
+        ? primaryVideoElement.isVideoMuted
+        : secondaryVideoElement.isVideoMuted;
+
     return (
       <Wrapper
         data-is-dominant={booleanAttribute(isDominantParticipantId)}
@@ -196,16 +239,14 @@ export const Participant = forwardRef<HTMLDivElement, ParticipantProps>(
             />
           </SecondaryVideoContainerWrapper>
         ) : null}
-        {participant.role === 'owner' && (
-          <OwnerRole title="Owner">
-            <IconPersone size="xs" color={'rgb(94, 148, 255)'} />
-          </OwnerRole>
-        )}
-        <ParticipantInfo>
+        <ParticipantInfo
+          data-is-fill={booleanAttribute(primaryVideoElement.isVideoMuted)}
+        >
           <UserName>{useName}</UserName>
 
           <Indicators>
-            {primaryVideoElement.isVideoMuted ? (
+            {isScreenShareShow && <IconDisplay color={white} />}
+            {isVideoMuted ? (
               <IconVideoOff color={white} />
             ) : (
               <IconCameraVideo color={white} />
@@ -217,6 +258,16 @@ export const Participant = forwardRef<HTMLDivElement, ParticipantProps>(
             )}
           </Indicators>
         </ParticipantInfo>
+        {participant.role === 'owner' && (
+          <OwnerRole title="Owner">
+            <IconPersoneCustom size="xs" color="inherit" />
+          </OwnerRole>
+        )}
+        <ParticipantModeratorDropdownCustom
+          participant={participant}
+          isAudioMuted={isAudioMuted}
+          isVideoMuted={isVideoMuted}
+        />
       </Wrapper>
     );
   },

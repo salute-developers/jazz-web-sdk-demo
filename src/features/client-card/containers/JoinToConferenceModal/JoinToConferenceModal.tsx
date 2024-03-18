@@ -8,9 +8,9 @@ import {
 
 import { JazzClient } from '@salutejs/jazz-sdk-web';
 import { Button, Headline3, Modal, TextField } from '@salutejs/plasma-b2c';
-import { useQuery } from 'rx-effects-react';
 import styled from 'styled-components/macro';
 
+import { useQuery } from '../../../../shared/hooks/useQuery';
 import {
   validateConferenceForm,
   ValidateReport,
