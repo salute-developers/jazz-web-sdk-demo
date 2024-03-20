@@ -1,5 +1,6 @@
 import { FC, useRef } from 'react';
 
+import { JazzRoomParticipant } from '@salutejs/jazz-sdk-web';
 import { useVirtualizer } from '@tanstack/react-virtual';
 import styled from 'styled-components/macro';
 
@@ -9,12 +10,17 @@ import { useRoomContext } from '../../contexts/roomContext';
 import { Participant } from './Participant';
 
 const Wrapper = styled.div`
-  scrollbar-width: thin;
   display: grid;
   overflow-y: scroll;
   flex-grow: 1;
   align-content: start;
   padding: 0 0 0 10px;
+
+  @-moz-document url-prefix() {
+     {
+      scrollbar-width: thin;
+    }
+  }
 `;
 
 export const Participants: FC = () => {
@@ -22,6 +28,12 @@ export const Participants: FC = () => {
 
   const participants = useParticipants(room);
 
+  return <ParticipantsScroll participants={participants} />;
+};
+
+const ParticipantsScroll: FC<{ participants: JazzRoomParticipant[] }> = ({
+  participants,
+}) => {
   const rootRef = useRef<HTMLDivElement>(null);
 
   const virtualizer = useVirtualizer({

@@ -37,14 +37,10 @@ export const ConferenceInfoModal: FC<ConferenceInfoModalProps> = ({
     <StyledModal isOpen={Boolean(roomDetails)} onClose={onClose}>
       <Title>Room is creating!</Title>
       <Wrapper>
-        <TextField readOnly caption="id" value={roomDetails?.id} />
-        <TextField readOnly caption="password" value={roomDetails?.password} />
-        <TextField
-          readOnly
-          caption="roomTitle"
-          value={roomDetails?.roomTitle}
-        />
-        <TextField readOnly caption="roomType" value={roomDetails?.roomType} />
+        <TextField readOnly caption="Id" value={roomDetails?.id} />
+        <TextField readOnly caption="Password" value={roomDetails?.password} />
+        <TextField readOnly caption="Title" value={roomDetails?.roomTitle} />
+        <TextField readOnly caption="Type" value={roomDetails?.roomType} />
       </Wrapper>
     </StyledModal>
   );

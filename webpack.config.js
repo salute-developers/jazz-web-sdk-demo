@@ -36,6 +36,9 @@ module.exports = {
       : 'static/js/[name].chunk.js',
     publicPath: '/',
   },
+  devServer: {
+    open: true,
+  },
   resolve: {
     extensions: ['.ts', '.tsx', '.js', '.jsx'],
     fallback: {

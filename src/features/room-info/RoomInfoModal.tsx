@@ -1,10 +1,11 @@
 import { FC, useCallback, useEffect, useState } from 'react';
 
-import { JazzRoom, JazzRoomParams } from '@salutejs/jazz-sdk-web';
+import { JazzRoom } from '@salutejs/jazz-sdk-web';
 import { Headline3, Modal, TextField } from '@salutejs/plasma-b2c';
 import styled from 'styled-components/macro';
 
 import { useGlobalContext } from '../../shared/contexts/globalContext';
+import { useQuery } from '../../shared/hooks/useQuery';
 
 const StyledModal = styled(Modal)`
   width: 500px;
@@ -41,18 +42,9 @@ export const RoomInfoModal: FC<{
 
   const handleClose = useCallback(() => setIsOpen(false), []);
 
-  const [roomParams, setRoomParams] = useState<JazzRoomParams | undefined>(
-    undefined,
-  );
-
-  useEffect(() => {
-    if (!room || !isOpen) return;
-
-    room.ready().then(() => {
-      const params = room.params.get();
-      setRoomParams(params);
-    });
-  }, [room, isOpen]);
+  const domainUrl = useQuery(room.params.domainUrl);
+  const conferenceId = useQuery(room.params.conferenceId);
+  const conferencePassword = useQuery(room.params.conferencePassword);
 
   return (
     <StyledModal isOpen={isOpen} onClose={handleClose}>
@@ -61,20 +53,20 @@ export const RoomInfoModal: FC<{
         view="innerLabel"
         readOnly
         caption="domainUrl"
-        value={roomParams?.domainUrl}
+        value={domainUrl}
       />
       <Wrapper>
         <TextField
           readOnly
           view="innerLabel"
           caption="conferenceId"
-          value={roomParams?.conferenceId}
+          value={conferenceId}
         />
         <TextField
           readOnly
           view="innerLabel"
           caption="conferencePassword"
-          value={roomParams?.conferencePassword}
+          value={conferencePassword}
         />
       </Wrapper>
     </StyledModal>

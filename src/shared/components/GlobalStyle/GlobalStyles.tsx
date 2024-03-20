@@ -1,8 +1,7 @@
 import { FC } from 'react';
 
-import { background, surfaceLiquid02 } from '@salutejs/plasma-tokens-b2c';
-import { light } from '@salutejs/plasma-tokens-b2c/themes';
-import { b2c } from '@salutejs/plasma-tokens-b2c/typo';
+import { background, surfaceLiquid02 } from '@salutejs/plasma-tokens';
+import { b2c, light } from '@salutejs/plasma-tokens-b2c';
 import {
   compatible as compatibleType,
   standard as standardTypo,

@@ -13,11 +13,11 @@ import {
   TextField,
 } from '@salutejs/plasma-b2c';
 import { IconPersone } from '@salutejs/plasma-icons';
-import { useQuery } from 'rx-effects-react';
 import styled from 'styled-components/macro';
 
 import { JAZZ_VALUE } from '../../../../shared/constants';
 import { useGlobalContext } from '../../../../shared/contexts/globalContext';
+import { useQuery } from '../../../../shared/hooks/useQuery';
 
 export type UserProfileProps = {
   client: JazzClient;
@@ -83,7 +83,7 @@ export const UserProfile: FC<UserProfileProps> = ({ client }) => {
     <>
       {!isAuthorised && (
         <Button view="primary" onClick={() => setIsOpenAuthModal(true)}>
-          SignIn
+          Sign in
         </Button>
       )}
 
@@ -176,7 +176,7 @@ const ModalAuth: FC<ModalProps> = ({ isOpen, onClose, client }) => {
           disabled={!value}
           onClick={handleLoginBySdkToken}
         >
-          SignIn
+          Sign in
         </Button>
       </ModalActions>
     </StyledModal>

@@ -1,5 +1,6 @@
 import { JazzRoom } from '@salutejs/jazz-sdk-web';
-import { useQuery } from 'rx-effects-react';
+
+import { useQuery } from './useQuery';
 
 export function usePoorConnection(jazzRoom: JazzRoom): boolean {
   const isOnline = useQuery(jazzRoom.client.isNetworkOnline);

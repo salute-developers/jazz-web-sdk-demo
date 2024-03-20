@@ -11,7 +11,7 @@ import {
   IconMicOff,
   IconVideoOff,
 } from '@salutejs/plasma-icons';
-import { dark01, white } from '@salutejs/plasma-tokens-b2c/colors';
+import { dark01, white } from '@salutejs/plasma-tokens';
 import styled from 'styled-components/macro';
 
 import { useGlobalContext } from '../../shared/contexts/globalContext';
@@ -80,13 +80,15 @@ const IconAudio: FC<{ isMuted: boolean }> = ({ isMuted }) => {
 };
 
 const IconDisplayScreen: FC<{ isMuted: boolean }> = ({ isMuted }) => {
-  return <IconWrapper>{isMuted ? <IconDisplay /> : <IconDevice />}</IconWrapper>;
+  return (
+    <IconWrapper>{isMuted ? <IconDisplay /> : <IconDevice />}</IconWrapper>
+  );
 };
 
 type Status = 'idle' | 'success' | 'error' | 'pending';
 
 export const Lobby: FC = () => {
-  const { sdk } = useGlobalContext();
+  const { sdk, eventBus } = useGlobalContext();
 
   const [videoStream, setVideoStream] = useState<MediaStream | undefined>();
   const [audioStream, setAudioStream] = useState<MediaStream | undefined>();
@@ -136,12 +138,7 @@ export const Lobby: FC = () => {
     videoElementRef.current.srcObject = activeStream || null;
     videoElementRef.current.load();
     videoElementRef.current.play().catch(() => {});
-  }, [
-    videoElementRef,
-    displayStream,
-    videoStream,
-    isMutedDisplay,
-  ]);
+  }, [videoElementRef, displayStream, videoStream, isMutedDisplay]);
 
   useEffect(() => {
     if (!localDevices) return;
@@ -150,7 +147,10 @@ export const Lobby: FC = () => {
       localDevices.event$,
       'muteTrackChanged',
       ({ payload }) => {
-        if (payload.mediaType === 'displayScreen' && payload.stream === displayStream) {
+        if (
+          payload.mediaType === 'displayScreen' &&
+          payload.stream === displayStream
+        ) {
           setIsMutedDisplay(payload.isMuted);
 
           if (payload.isMuted) {
@@ -160,10 +160,24 @@ export const Lobby: FC = () => {
       },
     );
 
+    const unsubscribeErrorDevicePermission = handleEvent(
+      localDevices.event$,
+      'errorDevicePermissions',
+      ({ payload }) => {
+        eventBus({
+          type: 'error',
+          payload: {
+            title: payload.message,
+          },
+        });
+      },
+    );
+
     return () => {
       unsubscribeMuteChange();
-    }
-  }, [localDevices, displayStream]);
+      unsubscribeErrorDevicePermission();
+    };
+  }, [localDevices, displayStream, eventBus]);
 
   const toggleCamera = useCallback(async () => {
     if (!localDevices) {
@@ -239,7 +253,8 @@ export const Lobby: FC = () => {
     setDisplayStatus('pending');
 
     if (isMutedDisplay) {
-      localDevices.getDisplayInputStream()
+      localDevices
+        .getDisplayInputStream()
         .then((stream) => {
           setDisplayStream(stream);
           setIsMutedDisplay(!isMutedDisplay);
@@ -275,7 +290,9 @@ export const Lobby: FC = () => {
           playsInline
           muted
         />
-        {isMutedCamera && isMutedDisplay ? <VideoMuted>Video muted</VideoMuted> : null}
+        {isMutedCamera && isMutedDisplay ? (
+          <VideoMuted>Video muted</VideoMuted>
+        ) : null}
       </WrapperVideo>
       <Actions>
         <Button isLoading={cameraStatus === 'pending'} onClick={toggleCamera}>

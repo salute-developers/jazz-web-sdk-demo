@@ -1,6 +1,6 @@
 import { isMatching, P } from 'ts-pattern';
 import uuid from 'uuid';
-import { decodeBytesFromBase64, encodeBytesAsBase64 } from './base64';
+import { encodeBytesAsBase64 } from './base64';
 
 const KEY_PATTERN = {
   /**
@@ -196,14 +196,17 @@ export const encodeSafeUrl = (input: Uint8Array | string): Base64String =>
 /**
  * base64 safe url to text
  */
-export const decodeSafeUrl = (input: Uint8Array | string): Uint8Array => {
-  let encoded = input;
-  if (encoded instanceof Uint8Array) {
-    encoded = decoder.decode(encoded);
+export const decodeSafeUrl = (input: Uint8Array | Base64String): string => {
+  let encoded = '';
+  if (input instanceof Uint8Array) {
+    encoded = decoder.decode(input);
+  }
+  if (typeof input === 'string') {
+    encoded = input;
   }
   encoded = encoded.replace(/-/g, '+').replace(/_/g, '/').replace(/\s/g, '');
   try {
-    return decodeBytesFromBase64(encoded);
+    return atob(encoded);
   } catch {
     throw new TypeError('The input to be decoded is not correctly encoded.');
   }
@@ -259,7 +262,7 @@ export function createSignedJWT(
 export function parseSecret(key: Base64String): SecretResult {
   let result: SecretResult;
   try {
-    result = JSON.parse(decoder.decode(decodeSafeUrl(key)));
+    result = JSON.parse(decodeSafeUrl(key));
   } catch (error) {
     throw createError('ER_INVALID_KEY', 'Invalid Key');
   }

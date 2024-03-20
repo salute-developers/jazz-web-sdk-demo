@@ -7,7 +7,8 @@ import {
   JazzRoom,
   JazzRoomParticipantId,
 } from '@salutejs/jazz-sdk-web';
-import { useQuery } from 'rx-effects-react';
+
+import { useQuery } from './useQuery';
 
 export function useRaiseHand(
   room: JazzRoom,

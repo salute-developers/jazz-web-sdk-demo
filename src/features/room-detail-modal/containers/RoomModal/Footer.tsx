@@ -1,12 +1,13 @@
 import { FC, useCallback } from 'react';
 
 import { Button } from '@salutejs/plasma-b2c';
-import { black } from '@salutejs/plasma-tokens-b2c';
+import { black } from '@salutejs/plasma-tokens';
 import styled from 'styled-components/macro';
 
 import { RoomActions } from '../../../../shared/containers/Actions';
 import { GlobalMute } from '../../../../shared/containers/GlobalMute';
 import { useGlobalContext } from '../../../../shared/contexts/globalContext';
+import { useQuery } from '../../../../shared/hooks/useQuery';
 import { useRoomContext } from '../../contexts/roomContext';
 
 const CustomGlobalMute = styled(GlobalMute)`
@@ -41,6 +42,9 @@ export const Footer: FC = () => {
   const { room } = useRoomContext();
   const { eventBus } = useGlobalContext();
 
+  const localParticipant = useQuery(room.localParticipant);
+  const userPermissions = useQuery(room.userPermissions);
+
   const handleViewRoomInfo = useCallback(() => {
     eventBus({
       type: 'roomInfoModalOpen',
@@ -61,7 +65,17 @@ export const Footer: FC = () => {
       <RoomActionsWrapper>
         <RoomActions room={room} isShowRaiseHand />
       </RoomActionsWrapper>
-      <RightSide></RightSide>
+      <RightSide>
+        {userPermissions?.canFinishCall &&
+        localParticipant?.role === 'owner' ? (
+          <Button
+            view="critical"
+            onClick={() => room.leave({ endConference: true })}
+          >
+            Finish for all
+          </Button>
+        ) : null}
+      </RightSide>
     </Wrapper>
   );
 };

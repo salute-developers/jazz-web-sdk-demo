@@ -1,5 +1,6 @@
-import { Action, createAction } from 'rx-effects';
 import { filter, Observable, UnaryFunction } from 'rxjs';
+
+import { Action, createAction } from './action';
 
 export type EventLike = {
   type: string;

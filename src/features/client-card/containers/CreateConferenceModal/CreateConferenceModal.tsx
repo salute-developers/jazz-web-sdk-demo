@@ -14,9 +14,9 @@ import {
   Modal,
   TextField,
 } from '@salutejs/plasma-b2c';
-import { useQuery } from 'rx-effects-react';
 import styled from 'styled-components/macro';
 
+import { useQuery } from '../../../../shared/hooks/useQuery';
 import {
   validateConferenceForm,
   ValidateReport,
@@ -32,6 +32,8 @@ const StyledForm = styled.form`
 export type CreateConferenceForm = {
   conferenceName: string;
   connectToConference: boolean;
+  isLobbyEnabled: boolean;
+  isGuestEnabled: boolean;
 };
 
 type CreateConferenceModalProps = {
@@ -45,6 +47,8 @@ function getInitialFormState(): CreateConferenceForm {
   return {
     conferenceName: 'Video meeting',
     connectToConference: true,
+    isLobbyEnabled: false,
+    isGuestEnabled: true,
   };
 }
 
@@ -54,15 +58,22 @@ export const CreateConferenceModal: FC<CreateConferenceModalProps> = ({
   onClose,
   onCreate,
 }) => {
+  return (
+    <Modal isOpen={isOpen} onClose={onClose}>
+      <Content client={client} onCreate={onCreate} />
+    </Modal>
+  );
+};
+
+const Content: FC<{
+  client: JazzClient;
+  onCreate: (form: CreateConferenceForm) => void;
+}> = ({ client, onCreate }) => {
   const [form, setForm] = useState<CreateConferenceForm>(getInitialFormState());
 
   const [errors, setErrors] = useState<ValidateReport>({});
 
   const userInfo = useQuery(client.auth.userInfo);
-
-  const handleClose = useCallback(() => {
-    onClose();
-  }, [onClose]);
 
   const handleChangeField = useCallback(
     (
@@ -91,6 +102,20 @@ export const CreateConferenceModal: FC<CreateConferenceModalProps> = ({
     }));
   }, []);
 
+  const handleEnableLobby = useCallback(() => {
+    setForm((form) => ({
+      ...form,
+      isLobbyEnabled: !form.isLobbyEnabled,
+    }));
+  }, []);
+
+  const handleEnableGuest = useCallback(() => {
+    setForm((form) => ({
+      ...form,
+      isGuestEnabled: !form.isGuestEnabled,
+    }));
+  }, []);
+
   const handleSubmit = useCallback<FormEventHandler<HTMLFormElement>>(
     (event) => {
       event.preventDefault();
@@ -110,28 +135,43 @@ export const CreateConferenceModal: FC<CreateConferenceModalProps> = ({
   );
 
   return (
-    <Modal isOpen={isOpen} onClose={handleClose}>
+    <>
       <Headline3>Create conference</Headline3>
       <StyledForm onSubmit={handleSubmit}>
         <TextField
           value={form.conferenceName}
-          label="Conference name"
+          caption="Conference name"
           onChange={(event) => handleChangeField(event, 'conferenceName')}
           helperText={errors.conferenceName}
           status={errors.conferenceName ? 'error' : undefined}
         />
         {form.connectToConference && (
-          <TextField value={userInfo?.name} readOnly label="User name" />
+          <TextField
+            value={userInfo?.name}
+            caption="Username"
+            disabled
+            label="User name"
+          />
         )}
         <Checkbox
-          label="connect to conference"
+          label="Connect to conference"
           checked={form.connectToConference}
           onChange={handleChangeConnectToConference}
+        />
+        <Checkbox
+          label="Enable guest"
+          checked={form.isGuestEnabled}
+          onChange={handleEnableGuest}
+        />
+        <Checkbox
+          label="Enable lobby"
+          checked={form.isLobbyEnabled}
+          onChange={handleEnableLobby}
         />
         <Button type="submit" view="primary">
           Create conference
         </Button>
       </StyledForm>
-    </Modal>
+    </>
   );
 };

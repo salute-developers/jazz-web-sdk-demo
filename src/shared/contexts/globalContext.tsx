@@ -4,6 +4,9 @@ import { handleEvent, JazzRoom, JazzSdk } from '@salutejs/jazz-sdk-web';
 import { Observable } from 'rxjs';
 
 import { createEventBus, EventBus } from '../utils/createEventBus';
+import { createDevicesStorage } from '../utils/mediaSettingsStorage';
+
+const deviceStorage = createDevicesStorage();
 
 export type ErrorEvent = {
   type: 'error';
@@ -35,15 +38,23 @@ export type Events =
   | {
       type: 'setSdk';
       payload: {
-        sdk: JazzSdk;
+        sdk: JazzSdk | undefined;
       };
     };
 
 export type GlobalContext = {
   sdk: JazzSdk | undefined;
-  setSdk: (sdk: JazzSdk) => void;
+  setSdk: (sdk: JazzSdk | undefined) => void;
   eventBus: EventBus<Events>;
   event$: Observable<Events>;
+  devices: {
+    getAudioInput: () => string | undefined;
+    setAudioInput: (value: string | undefined) => void;
+    getVideoInput: () => string | undefined;
+    setVideoInput: (value: string | undefined) => void;
+    getAudioOutput: () => string | undefined;
+    setAudioOutput: (value: string | undefined) => void;
+  };
 };
 
 function getInitialState(): GlobalContext {
@@ -59,6 +70,7 @@ function getInitialState(): GlobalContext {
         },
       });
     },
+    devices: deviceStorage,
     eventBus,
     event$: eventBus.event$,
   };

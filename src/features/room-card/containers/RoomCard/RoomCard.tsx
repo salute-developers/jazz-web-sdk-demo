@@ -1,15 +1,9 @@
 import { FC, useCallback, useEffect, useMemo, useState } from 'react';
 
-import {
-  getLobby,
-  handleEvent,
-  JazzRoomParticipantId,
-  JazzRoomStatus,
-} from '@salutejs/jazz-sdk-web';
+import { getLobby, handleEvent, JazzRoomStatus } from '@salutejs/jazz-sdk-web';
 import { Body2, Button } from '@salutejs/plasma-b2c';
 import { IconDisplay } from '@salutejs/plasma-icons';
-import { dark01, tertiary, white } from '@salutejs/plasma-tokens-b2c';
-import { useQuery } from 'rx-effects-react';
+import { dark01, tertiary, white } from '@salutejs/plasma-tokens';
 import styled from 'styled-components/macro';
 
 import { VideoContainer } from '../../../../shared/components/VideoContainer';
@@ -19,6 +13,7 @@ import { useGlobalContext } from '../../../../shared/contexts/globalContext';
 import { useVideoSources } from '../../../../shared/hooks/useActiveVideoSource';
 import { useParticipants } from '../../../../shared/hooks/useParticipants';
 import { usePoorConnection } from '../../../../shared/hooks/usePoorConnection';
+import { useQuery } from '../../../../shared/hooks/useQuery';
 import { useVideoElement } from '../../../../shared/hooks/useVideoElement';
 import { RoomCardProps } from '../../../../shared/types/roomCard';
 import { booleanAttribute } from '../../../../shared/utils/dataAttributes';
@@ -102,9 +97,6 @@ export const RoomCard: FC<RoomCardProps> = ({
 
   const { eventBus } = useGlobalContext();
 
-  const [dominantParticipantId, setDominantParticipantId] = useState<
-    JazzRoomParticipantId | undefined
-  >();
   const localParticipant = useQuery(room.localParticipant);
 
   const [status, setStatus] = useState<JazzRoomStatus>(() => room.status.get());
@@ -128,47 +120,22 @@ export const RoomCard: FC<RoomCardProps> = ({
     });
   }, [errorMessage, eventBus]);
 
-  const { primary } = useVideoSources(dominantParticipantId);
+  const participants = useParticipants(room);
+
+  const visibleParticipantId = participants[0]?.id;
+
+  const { primary } = useVideoSources(visibleParticipantId);
 
   const { isVideoMuted, videoRootRef, source } =
     useVideoElement<HTMLDivElement>({
-      participantId: dominantParticipantId,
+      participantId: visibleParticipantId,
       room,
       source: primary,
       height: 140,
       quality: 'medium',
     });
 
-  const participants = useParticipants(room);
-
   useEffect(() => {
-    if (!localParticipant) {
-      return;
-    }
-    if (participants.length === 1) {
-      setDominantParticipantId(localParticipant.id);
-    } else if (participants.length === 2) {
-      setDominantParticipantId(
-        participants.find(
-          (participant) => participant.id !== localParticipant.id,
-        )?.id,
-      );
-    }
-  }, [participants, localParticipant]);
-
-  useEffect(() => {
-    setDominantParticipantId(
-      room.dominantParticipantId.get() || room.participants.get()[0]?.id,
-    );
-
-    const unsubscribeDominantParticipantId = handleEvent(
-      room.event$,
-      'dominantSpeakerChanged',
-      ({ payload }) => {
-        setDominantParticipantId(payload.id);
-      },
-    );
-
     const unsubscribeStatusChanged = handleEvent(
       room.event$,
       'statusChanged',
@@ -177,56 +144,80 @@ export const RoomCard: FC<RoomCardProps> = ({
       },
     );
 
+    const unsubscribeKicked = handleEvent(
+      room.event$,
+      'kicked',
+      ({ payload: { reason } }) => {
+        if (reason === 'callEnded') {
+          eventBus({
+            type: 'error',
+            payload: {
+              title: 'Call ended',
+            },
+          });
+          return;
+        }
+        if (reason === 'kicked') {
+          eventBus({
+            type: 'error',
+            payload: {
+              title: 'You were kicked',
+            },
+          });
+        }
+      },
+    );
+
     const unsubscribeError = handleEvent(
       room.event$,
       'error',
       ({ payload: { error } }) => {
-        if (error.type === 'NotAllowedError') {
+        if (error.type === 'notAllowed') {
           setErrorMessage('Room has unsupported feature');
+          setViewRoom(false);
           return;
         }
 
-        if (error.type === 'AccessByPermissionError') {
+        if (error.type === 'accessByPermission') {
           setIsShowLobby(true);
           return;
         }
 
-        if (error.type === 'KickedError') {
-          setErrorMessage('You were kicked');
-          return;
-        }
-
-        if (error.type === 'ExceededMaxSdkMeetingsError') {
+        if (error.type === 'exceededMaxSdkMeetings') {
           setErrorMessage('Count of active rooms limit has been reached');
+          setViewRoom(false);
           return;
         }
 
-        if (error.type === 'OpenConnectionError') {
+        if (error.type === 'openConnection') {
           setErrorMessage('Connection to room has error');
+          setViewRoom(false);
           return;
         }
 
-        if (error.type === 'NetworkError') {
+        if (error.type === 'network') {
           setErrorMessage('Connection to room has error');
+          setViewRoom(false);
           return;
         }
 
+        setViewRoom(false);
         setErrorMessage('Unknown error');
       },
     );
 
     return () => {
       unsubscribeStatusChanged();
-      unsubscribeDominantParticipantId();
       unsubscribeError();
+      unsubscribeKicked();
     };
-  }, [room]);
+  }, [room, eventBus]);
 
-  const dominantParticipant = participants.find(
-    ({ id }) => dominantParticipantId === id,
+  const visibleParticipant = participants.find(
+    ({ id }) => visibleParticipantId === id,
   );
   const isLocalParticipant = localParticipant
-    ? localParticipant.id === dominantParticipant?.id
+    ? localParticipant.id === visibleParticipant?.id
     : false;
 
   const handleHideLobby = useCallback(() => {

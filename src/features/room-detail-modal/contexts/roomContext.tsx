@@ -2,8 +2,15 @@ import { createContext, FC, useContext, useState } from 'react';
 
 import { JazzRoom } from '@salutejs/jazz-sdk-web';
 
+import { createEventBus, EventBus } from '../../../shared/utils/createEventBus';
+
+type EventBusEvent = {
+  type: 'openLobbyModal';
+};
+
 export type RoomContext = {
   room: JazzRoom;
+  eventBus: EventBus<EventBusEvent>;
 };
 
 const RoomContext = createContext<RoomContext | undefined>(undefined);
@@ -22,6 +29,7 @@ export const RoomContextProvider: FC<{ room: JazzRoom }> = ({
 }) => {
   const [state] = useState(() => {
     return {
+      eventBus: createEventBus<EventBusEvent>(),
       room,
     };
   });

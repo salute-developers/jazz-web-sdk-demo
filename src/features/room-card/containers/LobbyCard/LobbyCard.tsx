@@ -2,10 +2,11 @@ import { FC, useCallback, useEffect, useState } from 'react';
 
 import { handleEvent, JazzLobby, JazzRoom } from '@salutejs/jazz-sdk-web';
 import { Body2, Button } from '@salutejs/plasma-b2c';
-import { IconCallEnd } from '@salutejs/plasma-icons';
-import { buttonWarning, tertiary } from '@salutejs/plasma-tokens-b2c';
-import { useQuery } from 'rx-effects-react';
+import { IconCallEnd, IconPersone } from '@salutejs/plasma-icons';
+import { buttonWarning, tertiary } from '@salutejs/plasma-tokens';
 import styled from 'styled-components/macro';
+
+import { useQuery } from '../../../../shared/hooks/useQuery';
 
 const Wrapper = styled.div`
   width: 300px;
@@ -15,6 +16,10 @@ const Wrapper = styled.div`
   overflow: hidden;
   border-radius: 16px;
   background: ${buttonWarning};
+`;
+
+const IconPersoneCustom = styled(IconPersone)`
+  color: #fff;
 `;
 
 const ConnectionPlaceHolder = styled.div`
@@ -50,6 +55,21 @@ const Message = styled.div`
   color: #fff;
 `;
 
+const HasModerator = styled.div`
+  position: absolute;
+  left: 50%;
+  top: 100px;
+  transform: translateX(-50%);
+  height: 32px;
+  width: 32px;
+  background: #0000003d;
+  border-radius: 45px;
+  display: grid;
+  align-items: center;
+  justify-content: center;
+  cursor: help;
+`;
+
 const Actions = styled.div`
   display: flex;
   align-items: center;
@@ -65,6 +85,7 @@ export const LobbyCard: FC<{
   onHide: () => void;
 }> = ({ room, lobby, onHide }) => {
   const status = useQuery(lobby.status);
+  const hasModerator = useQuery(lobby.hasModerator);
 
   const [errorMessage, setErrorMessage] = useState('');
 
@@ -73,7 +94,7 @@ export const LobbyCard: FC<{
       lobby.event$,
       'error',
       ({ payload: { error } }) => {
-        if (error.type === 'AccessDeniedError') {
+        if (error.type === 'accessDenied') {
           setErrorMessage('Access denied');
           return;
         }
@@ -121,6 +142,11 @@ export const LobbyCard: FC<{
         </ConnectionPlaceHolder>
       )}
       <Message>Wait, the organizer will let you in soon</Message>
+      {hasModerator && (
+        <HasModerator title="Has moderators in room">
+          <IconPersoneCustom size="xs" color="inherit" />
+        </HasModerator>
+      )}
       <Actions>
         <Button
           contentLeft={<IconCallEnd />}
