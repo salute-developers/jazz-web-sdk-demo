@@ -1,6 +1,6 @@
 {
   "name": "jazz-sdk-demo-web",
-  "version": "1.42.35",
+  "version": "1.42.38",
   "description": "Jazz SDK Demo App",
   "private": true,
   "scripts": {
@@ -9,8 +9,8 @@
     "lint": "npx tsc --noEmit"
   },
   "dependencies": {
-    "@salutejs/jazz-sdk-web": "1.42.35",
-    "@salutejs/jazz-sdk-web-plugins": "1.42.35",
+    "@salutejs/jazz-sdk-web": "1.42.38",
+    "@salutejs/jazz-sdk-web-plugins": "1.42.38",
     "@salutejs/plasma-b2c": "1.221.0",
     "@salutejs/plasma-core": "1.126.0",
     "@salutejs/plasma-icons": "1.155.0",
