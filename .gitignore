@@ -16,8 +16,11 @@
 .npm-cache
 .tmp
 
+/apps/*/build
+/apps/*/dist
 /build
 /dist
-/libs
-
+/packages/*/build
+/packages/*/dev
+/packages/*/dist
 

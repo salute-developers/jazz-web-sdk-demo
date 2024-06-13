@@ -1,0 +1,17 @@
+{
+  "name": "jazz-sdk-testapp-desktop",
+  "version": "1.44.29",
+  "description": "SaluteJazz SDK Demo Desktop App",
+  "main": "build/electron/index.js",
+  "scripts": {
+    "clean": "rm -rf build dist",
+    "start": "npm-run-all -p start:*",
+    "start:web": "cross-env NODE_ENV=development webpack serve --mode development --hot only -c webpack-renderer.config.js",
+    "start:electron": "npm run build:main && node electron-wait-react.js",
+    "build:main": "webpack -c webpack-main.config.js",
+    "lint": "npx tsc --noEmit"
+  },
+  "dependencies": {
+    "jazz-sdk-testapp-universal": "*"
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "name": "jazz-sdk-testapp-universal",
+  "version": "1.44.29",
+  "description": "Jazz playground app for testing sdk features",
+  "private": true,
+  "scripts": {
+    "lint:tsc": "jazz-run -- tsc --noEmit"
+  },
+  "dependencies": {
+    "@salutejs/jazz-sdk-web": "*",
+    "@salutejs/jazz-sdk-web-plugins": "*"
+  }
+}
