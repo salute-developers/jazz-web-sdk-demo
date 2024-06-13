@@ -1,33 +1,135 @@
 {
+  "root": true,
   "rules": {
+    "sort-imports": [
+      "warn",
+      {
+        "ignoreDeclarationSort": true,
+        "ignoreCase": true
+      }
+    ],
     "prefer-template": "off",
     "no-var": 1,
-    "no-unused-vars": 1,
-    "camelcase": 1,
-    "no-nested-ternary": 1,
-    "no-console": 1,
+    "no-console": "off",
     "no-template-curly-in-string": 1,
     "no-self-compare": 1,
     "import/prefer-default-export": 0,
-    "arrow-body-style": 1,
-    "import/no-extraneous-dependencies": ["off", { "devDependencies": false }]
+    "arrow-body-style": 0,
+    "import/no-extraneous-dependencies": ["off", { "devDependencies": false }],
+    "import/no-unresolved": "off",
+    "import/extensions": "off",
+    "no-underscore-dangle": "off",
+    "@typescript-eslint/explicit-module-boundary-types": "error",
+    "@typescript-eslint/unbound-method": "off",
+    "@typescript-eslint/no-floating-promises": "off",
+    "@typescript-eslint/member-delimiter-style": "error",
+    "@typescript-eslint/member-ordering": "warn",
+    "@typescript-eslint/no-unused-vars": [
+      "warn",
+      {
+        "argsIgnorePattern": "^_",
+        "varsIgnorePattern": "^_",
+        "ignoreRestSiblings": true
+      }
+    ],
+    "@typescript-eslint/camelcase": "off",
+    "@typescript-eslint/method-signature-style": "warn",
+    "@typescript-eslint/no-unused-expressions": [
+      "error",
+      {
+        "allowShortCircuit": false,
+        "allowTernary": true,
+        "allowTaggedTemplates": false
+      }
+    ],
+    "@typescript-eslint/no-empty-function": "off",
+    "@typescript-eslint/ban-types": [
+      "error",
+      {
+        "extendDefaults": true,
+        "types": {
+          "object": false
+        }
+      }
+    ],
+
+    "class-methods-use-this": "off",
+    "no-implicit-coercion": "error",
+    "no-param-reassign": ["error", { "props": false }],
+    "indent": "off",
+    "no-multiple-empty-lines": ["error", { "max": 1 }],
+    "eslint-comments/disable-enable-pair": [
+      "error",
+      { "allowWholeFile": true }
+    ],
+    "default-case": "error",
+    "import/order": [
+      "error",
+      {
+        "groups": [
+          ["builtin", "external"],
+          "internal",
+          "parent",
+          "sibling",
+          "index"
+        ],
+        "pathGroups": [
+          {
+            "pattern": "react",
+            "group": "external",
+            "position": "before"
+          },
+          {
+            "pattern": "jazz-*/**",
+            "group": "external",
+            "position": "after"
+          }
+        ],
+        "pathGroupsExcludedImportTypes": ["builtin"],
+        "newlines-between": "always",
+        "alphabetize": {
+          "order": "asc",
+          "caseInsensitive": true
+        }
+      }
+    ]
   },
   "ignorePatterns": ["dist", "node_modules", "webpack.*"],
   "env": {
     "browser": true,
     "es6": true
   },
-  "extends": ["eslint:recommended", "prettier"],
-  "parserOptions": {
-    "ecmaVersion": 2021,
-    "sourceType": "module"
-  },
-  "plugins": ["prettier"],
-  "settings": {
-    "import/resolver": {
-      "webpack": {
-        "config": "config/webpack.common.js"
+  "extends": [
+    "eslint:recommended",
+    "plugin:@typescript-eslint/eslint-plugin/recommended",
+    "plugin:eslint-plugin-eslint-comments/recommended",
+    "plugin:eslint-plugin-import/recommended",
+    "plugin:eslint-plugin-import/typescript",
+    "plugin:eslint-plugin-react-hooks/recommended",
+    "eslint-config-prettier"
+  ],
+  "plugins": [
+    "prettier",
+    "@typescript-eslint/eslint-plugin",
+    "eslint-plugin-import",
+    "eslint-plugin-eslint-comments",
+    "eslint-plugin-react-hooks"
+  ],
+  "overrides": [
+    {
+      "files": ["*.d.ts"],
+      "rules": {
+        "@typescript-eslint/method-signature-style": "off"
+      }
+    },
+
+    {
+      "files": ["*.js", "*.mjs"],
+      "rules": {
+        "no-undef": "off",
+        "@typescript-eslint/no-var-requires": "off",
+        "@typescript-eslint/explicit-module-boundary-types": "off"
       }
     }
-  }
+  ]
 }
