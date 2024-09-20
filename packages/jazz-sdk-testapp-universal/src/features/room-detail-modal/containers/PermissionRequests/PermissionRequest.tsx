@@ -35,10 +35,12 @@ const REQUEST_PERMISSION_MESSAGE: Record<string, string> = {
   canSendReaction: 'wants to send reactions',
 };
 
-const getMessage = (permission: string): string => (
+const getMessage = (permission: string): string => {
+  return (
     REQUEST_PERMISSION_MESSAGE[permission] ||
     'wants to perform an undefined action'
   );
+};
 
 export const PermissionRequest = forwardRef<
   HTMLDivElement,

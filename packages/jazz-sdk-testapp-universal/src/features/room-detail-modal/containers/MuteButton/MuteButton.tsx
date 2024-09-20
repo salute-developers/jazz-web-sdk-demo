@@ -38,13 +38,12 @@ export const MuteButton = forwardRef<
     iconColor?: IconProps['color'];
   }
 >((props, ref) => {
-  const { room, participantId, iconColor, ...otherProps } = props;
+  const { room, participantId, iconColor, className } = props;
   const [isMuted, setIsMuted] = useState(false);
 
-  const audioOutputMixerManger = useMemo(
-    () => getAudioOutputMixerManager(room),
-    [room],
-  );
+  const audioOutputMixerManger = useMemo(() => {
+    return getAudioOutputMixerManager(room);
+  }, [room]);
 
   useEffect(() => {
     setIsMuted(
@@ -72,7 +71,7 @@ export const MuteButton = forwardRef<
 
   return (
     <Action
-      {...otherProps}
+      className={className}
       ref={ref}
       title="mute audio"
       aria-label="mute audio"

@@ -1,5 +1,6 @@
 import { isMatching, P } from 'ts-pattern';
 import uuid from 'uuid';
+
 import { encodeBytesAsBase64 } from './base64';
 
 const KEY_PATTERN = {

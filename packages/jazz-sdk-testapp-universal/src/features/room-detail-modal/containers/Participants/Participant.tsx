@@ -174,7 +174,7 @@ export const Participant = forwardRef<HTMLDivElement, ParticipantProps>(
       room,
       source: primary,
       height: 150,
-      quality: 'medium',
+      width: 300,
     });
 
     const secondaryVideoElement = useVideoElement<HTMLDivElement>({
@@ -182,7 +182,7 @@ export const Participant = forwardRef<HTMLDivElement, ParticipantProps>(
       room,
       source: secondary,
       height: 100,
-      quality: 'medium',
+      width: 200,
     });
 
     const useName = isLocalParticipant

@@ -57,11 +57,13 @@ export const CreateConferenceModal: FC<CreateConferenceModalProps> = ({
   isOpen,
   onClose,
   onCreate,
-}) => (
+}) => {
+  return (
     <Modal isOpen={isOpen} onClose={onClose}>
       <Content client={client} onCreate={onCreate} />
     </Modal>
   );
+};
 
 const Content: FC<{
   client: JazzClient;

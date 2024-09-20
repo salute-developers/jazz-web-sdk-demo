@@ -20,9 +20,11 @@ export const RoomContextProvider: FC<{
   room: JazzRoom;
   children: React.ReactNode;
 }> = ({ children, room }) => {
-  const [state] = useState(() => ({
-    room,
-  }));
+  const [state] = useState(() => {
+    return {
+      room,
+    };
+  });
 
   return <RoomContext.Provider value={state}>{children}</RoomContext.Provider>;
 };

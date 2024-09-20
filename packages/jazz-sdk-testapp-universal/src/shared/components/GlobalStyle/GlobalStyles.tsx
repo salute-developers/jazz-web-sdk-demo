@@ -32,9 +32,11 @@ const LayoutStyle = createGlobalStyle`
   }
 `;
 
-export const GlobalStyles: FC = () => (
+export const GlobalStyles: FC = () => {
+  return (
     <>
       <PlasmaStyle />
       <LayoutStyle />
     </>
   );
+};

@@ -42,9 +42,11 @@ export const OptionsSettings: FC = () => {
     };
   }, [lobby]);
 
-  const debouncedSetSettingsRequest = useMemo(() => debounce((props: JazzLobbySettingsUpdate) => {
+  const debouncedSetSettingsRequest = useMemo(() => {
+    return debounce((props: JazzLobbySettingsUpdate) => {
       lobby.moderator.setSettings(props);
-    }, 200), [lobby]);
+    }, 200);
+  }, [lobby]);
 
   const handleChange = useCallback(
     (event: React.ChangeEvent<HTMLInputElement>) => {

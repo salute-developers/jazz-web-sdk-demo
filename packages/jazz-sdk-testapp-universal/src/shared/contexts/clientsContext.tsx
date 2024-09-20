@@ -68,7 +68,7 @@ export function useClientsContext(): ClientsContext {
   return result;
 }
 
-export const ClientsContextProvider: FC<{ children?: React.ReactNode }> = ({
+export const ClientsContextProvider: FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
   const [state] = useState<ClientsContext>(getInitialState);

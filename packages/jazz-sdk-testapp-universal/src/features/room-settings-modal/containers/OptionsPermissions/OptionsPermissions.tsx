@@ -51,9 +51,11 @@ const Content: FC = () => {
     };
   }, [room]);
 
-  const debouncedSetSettingsRequest = useMemo(() => debounce((props: Partial<JazzRoomUserPermissions>) => {
+  const debouncedSetSettingsRequest = useMemo(() => {
+    return debounce((props: Partial<JazzRoomUserPermissions>) => {
       room.moderator.setRolePermissions({ role: 'member', permissions: props });
-    }, 200), [room]);
+    }, 200);
+  }, [room]);
 
   const handleChange = useCallback(
     (permission: JazzRoomUserPermissionKey) =>

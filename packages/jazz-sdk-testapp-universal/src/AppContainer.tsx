@@ -91,8 +91,8 @@ const App: FC<{
   const [status, setStatus] = useState<InitSDKStatus>('process');
 
   useEffect(() => {
-    console.log('Start creating sdk...');
     let jazzSdk: JazzSdk | undefined;
+    let isDestroyed = false;
     // create sdk
     createJazzWebSdk({
       userAgent: 'Jazz Test App',
@@ -110,12 +110,18 @@ const App: FC<{
       videoInputDeviceId: devices.getVideoInput(),
     })
       .then((sdk) => {
-        console.log('Sdk is created');
+        if (isDestroyed) {
+          sdk.destroy();
+          return;
+        }
         jazzSdk = sdk;
         setSdk(sdk);
         setStatus('success');
       })
       .catch((error) => {
+        if (isDestroyed) {
+          return;
+        }
         console.error('Fail create sdk', error);
         setStatus('fail');
         eventBus({ type: 'error', payload: { title: 'fail create sdk' } });
@@ -123,9 +129,8 @@ const App: FC<{
 
     return () => {
       setSdk(undefined);
-      setTimeout(() => {
-        jazzSdk?.destroy();
-      }, 0);
+      jazzSdk?.destroy();
+      isDestroyed = true;
     };
   }, [setSdk, eventBus, devices, jazzSdkPlugins]);
 
@@ -164,18 +169,20 @@ const Content: FC = () => {
 export const AppContainer: FC<{
   jazzSdkPlugins?: ReadonlyArray<JazzSdkPlugin> | undefined;
   DesktopCapturerComponent?: FC<{ jazzSdk: JazzSdk }>;
-}> = ({ DesktopCapturerComponent, jazzSdkPlugins = [] }) => (
-  <GlobalContextProvider>
-    <ClientsContextProvider>
-      <ModalsProvider>
-        <NotificationsProvider>
-          <GlobalStyles />
-          <App
-            jazzSdkPlugins={jazzSdkPlugins}
-            DesktopCapturerComponent={DesktopCapturerComponent}
-          />
-        </NotificationsProvider>
-      </ModalsProvider>
-    </ClientsContextProvider>
-  </GlobalContextProvider>
-);
+}> = ({ DesktopCapturerComponent, jazzSdkPlugins = [] }) => {
+  return (
+    <GlobalContextProvider>
+      <ClientsContextProvider>
+        <ModalsProvider>
+          <NotificationsProvider>
+            <GlobalStyles />
+            <App
+              jazzSdkPlugins={jazzSdkPlugins}
+              DesktopCapturerComponent={DesktopCapturerComponent}
+            />
+          </NotificationsProvider>
+        </ModalsProvider>
+      </ClientsContextProvider>
+    </GlobalContextProvider>
+  );
+};

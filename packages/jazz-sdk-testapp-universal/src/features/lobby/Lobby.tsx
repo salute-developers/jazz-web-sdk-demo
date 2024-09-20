@@ -93,17 +93,23 @@ const IconWrapper = styled.div`
   margin-right: 4px;
 `;
 
-const IconCamera: FC<{ isMuted: boolean }> = ({ isMuted }) => (
+const IconCamera: FC<{ isMuted: boolean }> = ({ isMuted }) => {
+  return (
     <IconWrapper>
       {isMuted ? <IconVideoOff /> : <IconCameraVideo />}
     </IconWrapper>
   );
+};
 
-const IconAudio: FC<{ isMuted: boolean }> = ({ isMuted }) => <IconWrapper>{isMuted ? <IconMicOff /> : <IconMic />}</IconWrapper>;
+const IconAudio: FC<{ isMuted: boolean }> = ({ isMuted }) => {
+  return <IconWrapper>{isMuted ? <IconMicOff /> : <IconMic />}</IconWrapper>;
+};
 
-const IconDisplayScreen: FC<{ isMuted: boolean }> = ({ isMuted }) => (
+const IconDisplayScreen: FC<{ isMuted: boolean }> = ({ isMuted }) => {
+  return (
     <IconWrapper>{isMuted ? <IconDisplay /> : <IconDevice />}</IconWrapper>
   );
+};
 
 type Status = 'idle' | 'success' | 'error' | 'pending';
 
@@ -286,6 +292,8 @@ export const Lobby: FC = () => {
       localDevices
         .getDisplayInputStream()
         .then((stream) => {
+          audioOutputMixer?.addMediaStream(stream);
+
           setDisplayStream(stream);
           setIsMutedDisplay(!isMutedDisplay);
           setDisplayStatus('success');
@@ -299,6 +307,8 @@ export const Lobby: FC = () => {
         });
     } else {
       if (displayStream) {
+        audioOutputMixer?.removeMediaStream(displayStream);
+
         localDevices
           .releaseMediaStream(displayStream)
           .then(() => {
@@ -311,7 +321,7 @@ export const Lobby: FC = () => {
           });
       }
     }
-  }, [localDevices, isMutedDisplay, displayStream]);
+  }, [localDevices, isMutedDisplay, displayStream, audioOutputMixer]);
 
   return (
     <Wrapper>

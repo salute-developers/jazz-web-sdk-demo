@@ -88,7 +88,7 @@ export function useGlobalContext(): GlobalContext {
   return result;
 }
 
-export const GlobalContextProvider: FC<{ children?: React.ReactNode }> = ({
+export const GlobalContextProvider: FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
   const [state, setState] = useState<GlobalContext>(getInitialState);

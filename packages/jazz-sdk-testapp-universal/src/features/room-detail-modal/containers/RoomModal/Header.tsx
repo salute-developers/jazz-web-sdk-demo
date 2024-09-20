@@ -29,7 +29,9 @@ export const Header: FC = () => {
 
   const userPermissions = useQuery(room.userPermissions);
 
-  const lobby = useMemo(() => getLobby(room), [room]);
+  const lobby = useMemo(() => {
+    return getLobby(room);
+  }, [room]);
 
   const isLobbyEnabled = useQuery(lobby.settings.isLobbyEnabled);
 

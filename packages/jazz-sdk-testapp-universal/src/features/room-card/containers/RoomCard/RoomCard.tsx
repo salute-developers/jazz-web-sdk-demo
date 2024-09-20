@@ -132,7 +132,7 @@ export const RoomCard: FC<RoomCardProps> = ({
       room,
       source: primary,
       height: 140,
-      quality: 'medium',
+      width: 140,
     });
 
   useEffect(() => {

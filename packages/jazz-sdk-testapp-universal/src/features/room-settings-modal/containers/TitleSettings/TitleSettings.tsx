@@ -37,9 +37,11 @@ export const TitleSettings: FC = () => {
     };
   }, [room]);
 
-  const debouncedTitleChange = useMemo(() => debounce((title: string) => {
+  const debouncedTitleChange = useMemo(() => {
+    return debounce((title: string) => {
       room.moderator.setSettings({ title });
-    }, 200), [room]);
+    }, 200);
+  }, [room]);
 
   const handleChange = useCallback(
     (value: string) => {

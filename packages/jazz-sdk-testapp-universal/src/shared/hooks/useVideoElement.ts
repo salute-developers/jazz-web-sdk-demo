@@ -5,7 +5,6 @@ import {
   handleEvents,
   JazzRoom,
   JazzRoomParticipantId,
-  JazzRoomQuality,
   JazzRoomVideoSource,
 } from '@salutejs/jazz-sdk-web';
 import {
@@ -26,7 +25,7 @@ export function useVideoElement<
   participantId: JazzRoomParticipantId | undefined;
   source: T;
   height: number;
-  quality: JazzRoomQuality;
+  width: number;
 }): {
   isVideoPaused: boolean;
   isVideoMuted: boolean;
@@ -34,11 +33,13 @@ export function useVideoElement<
   videoRootRef: RefObject<E>;
   source: T;
 } {
-  const { height, participantId, quality, room, source } = options;
+  const { height, width, participantId, room, source } = options;
   const [isVideoPaused, setIsVideoPaused] = useState(true);
   const [isVideoMuted, setIsVideoMuted] = useState(true);
 
-  const videoElementPool = useMemo(() => getVideoElementPool(room), [room]);
+  const videoElementPool = useMemo(() => {
+    return getVideoElementPool(room);
+  }, [room]);
 
   const videoRootRef = useRef<E>(null);
 
@@ -52,7 +53,7 @@ export function useVideoElement<
       videoElementPool.getElement(participantId, {
         source,
         height,
-        quality,
+        width,
       });
 
     setIsVideoMuted(isMuted.get());
@@ -103,7 +104,7 @@ export function useVideoElement<
 
       releaseElement();
     };
-  }, [height, participantId, quality, room, source, state, videoElementPool]);
+  }, [height, participantId, room, source, state, videoElementPool, width]);
 
   return {
     event$: state.event$,

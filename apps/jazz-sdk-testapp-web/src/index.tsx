@@ -1,8 +1,11 @@
 import React from 'react';
 
-import ReactDOM from 'react-dom';
+import ReactDOM from 'react-dom/client';
 
 import { AppContainer } from 'jazz-sdk-testapp-universal/src';
-const root = document.getElementById('root');
 
-ReactDOM.render(<AppContainer />, root);
+const root = ReactDOM.createRoot(
+  document.getElementById('root') as HTMLElement,
+);
+
+root.render(<AppContainer />);

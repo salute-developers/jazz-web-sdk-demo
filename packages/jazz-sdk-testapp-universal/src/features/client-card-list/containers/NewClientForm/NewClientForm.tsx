@@ -6,11 +6,13 @@ import {
   useState,
 } from 'react';
 
-import { createJazzClient } from '@salutejs/jazz-sdk-web';
+import { createJazzClient, createSdkToken } from '@salutejs/jazz-sdk-web';
 import { Body2, Button, TextField } from '@salutejs/plasma-b2c';
+import { firstValueFrom, map } from 'rxjs';
 import styled from 'styled-components/macro';
 
 import { CLIENT_VALUE_KEY } from '../../../../shared/constants';
+import { useClientsContext } from '../../../../shared/contexts/clientsContext';
 import { useGlobalContext } from '../../../../shared/contexts/globalContext';
 import { validateURL } from '../../../../shared/utils/validateURL';
 
@@ -29,6 +31,7 @@ const FieldWrapper = styled.form`
 
 export const NewClientForm: FC = () => {
   const { sdk, eventBus } = useGlobalContext();
+  const { clients$ } = useClientsContext();
 
   const [host, setHost] = useState(
     sessionStorage.getItem(CLIENT_VALUE_KEY) || '',
@@ -44,8 +47,37 @@ export const NewClientForm: FC = () => {
       if (!sdk) return;
       setStatus('pending');
       try {
-        await createJazzClient(sdk, {
+        const jazzClient = await createJazzClient(sdk, {
           serverUrl: host,
+          authProvider: {
+            handleUnauthorizedError: async ({ loginBySdkToken }) => {
+              const state = await firstValueFrom(
+                clients$.pipe(map((clients) => clients.get(jazzClient))),
+              );
+              if (!state || !state.sdkTokenState) {
+                return 'fail';
+              }
+
+              const { iss, value, sub, userName } = state.sdkTokenState;
+              try {
+                const { sdkToken } = await createSdkToken(value, {
+                  iss,
+                  userName,
+                  sub,
+                });
+
+                await loginBySdkToken(sdkToken);
+
+                return 'retry';
+              } catch (error) {
+                console.log(
+                  'Failed to refresh authenticate by sdk token',
+                  error,
+                );
+                return 'fail';
+              }
+            },
+          },
         });
 
         console.log('Created JazzClient');
@@ -58,7 +90,7 @@ export const NewClientForm: FC = () => {
         setStatus('failure');
       }
     },
-    [sdk, eventBus],
+    [sdk, eventBus, clients$],
   );
 
   const handleChange = useCallback<ChangeEventHandler<HTMLInputElement>>(

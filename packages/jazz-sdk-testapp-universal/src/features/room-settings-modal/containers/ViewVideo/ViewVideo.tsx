@@ -60,7 +60,9 @@ export const ViewVideo: FC = () => {
 
   const [state, setState] = useState<ViewState>('allPlay');
 
-  const videoElementPool = useMemo(() => getVideoElementPool(room), [room]);
+  const videoElementPool = useMemo(() => {
+    return getVideoElementPool(room);
+  }, [room]);
 
   useEffect(() => {
     const pausedTypes = videoElementPool.getPausedMediaTypes();
@@ -109,14 +111,7 @@ export const ViewVideo: FC = () => {
   return (
     <div>
       <Title>View video</Title>
-      <Select
-        value={state}
-        items={SELECT_ITEMS}
-        onChange={handleChange}
-        placeholder=""
-        onPointerEnterCapture={undefined}
-        onPointerLeaveCapture={undefined}
-      />
+      <Select value={state} items={SELECT_ITEMS} onChange={handleChange} />
     </div>
   );
 };

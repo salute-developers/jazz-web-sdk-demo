@@ -32,14 +32,16 @@ const Wrapper = styled.div`
 export const ConferenceInfoModal: FC<ConferenceInfoModalProps> = ({
   roomDetails,
   onClose,
-}) => (
-  <StyledModal isOpen={Boolean(roomDetails)} onClose={onClose}>
-    <Title>Room is creating!</Title>
-    <Wrapper>
-      <TextField readOnly caption="Id" value={roomDetails?.id} />
-      <TextField readOnly caption="Password" value={roomDetails?.password} />
-      <TextField readOnly caption="Title" value={roomDetails?.roomTitle} />
-      <TextField readOnly caption="Type" value={roomDetails?.roomType} />
-    </Wrapper>
-  </StyledModal>
-);
+}) => {
+  return (
+    <StyledModal isOpen={Boolean(roomDetails)} onClose={onClose}>
+      <Title>Room is creating!</Title>
+      <Wrapper>
+        <TextField readOnly caption="Id" value={roomDetails?.id} />
+        <TextField readOnly caption="Password" value={roomDetails?.password} />
+        <TextField readOnly caption="Title" value={roomDetails?.roomTitle} />
+        <TextField readOnly caption="Type" value={roomDetails?.roomType} />
+      </Wrapper>
+    </StyledModal>
+  );
+};

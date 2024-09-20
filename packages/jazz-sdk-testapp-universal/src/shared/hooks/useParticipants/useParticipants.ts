@@ -23,12 +23,14 @@ export function useParticipants(room: JazzRoom): JazzRoomParticipant[] {
     >
   >(() => new Map());
 
-  const resultParticipants = useMemo(() => participants.sort((a, b) => {
+  const resultParticipants = useMemo(() => {
+    return participants.sort((a, b) => {
       const aWeight = sum(participantSortWeight.get(a.id));
       const bWeight = sum(participantSortWeight.get(b.id));
 
       return bWeight - aWeight;
-    }), [participants, participantSortWeight]);
+    });
+  }, [participants, participantSortWeight]);
 
   useEnhancedEffect(() => {
     const participants = room.participants.get();

@@ -127,7 +127,7 @@ const ModalAuth: FC<ModalProps> = ({ isOpen, onClose, client }) => {
 
   const handleLoginBySdkToken = useCallback(() => {
     const newUserName = userName || 'MyUserName';
-    const sub = newUserName;
+    const sub = newUserName.replace(' ', '_');
     const iss = 'JazzTestApp';
 
     createSdkToken(value, {

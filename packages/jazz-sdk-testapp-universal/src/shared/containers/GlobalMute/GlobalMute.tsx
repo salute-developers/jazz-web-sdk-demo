@@ -27,19 +27,14 @@ const IconVolume: FC<{
 
 export const GlobalMute = forwardRef<
   HTMLButtonElement,
-  {
-    room: JazzRoom;
-    className?: string;
-    iconColor?: IconProps['color'];
-  }
+  { room: JazzRoom; className?: string; iconColor?: IconProps['color'] }
 >((props, ref) => {
-  const { room, iconColor, ...otherProps } = props;
+  const { room, iconColor, className } = props;
   const [isAllMuted, setIsAllMuted] = useState(false);
 
-  const audioOutputMixerManger = useMemo(
-    () => getAudioOutputMixerManager(room),
-    [room],
-  );
+  const audioOutputMixerManger = useMemo(() => {
+    return getAudioOutputMixerManager(room);
+  }, [room]);
 
   useEffect(() => {
     setIsAllMuted(audioOutputMixerManger.isMutedAll.get());
@@ -63,7 +58,7 @@ export const GlobalMute = forwardRef<
 
   return (
     <Action
-      {...otherProps}
+      className={className}
       ref={ref}
       title="mute audio"
       aria-label="mute audio"

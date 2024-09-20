@@ -100,13 +100,13 @@ function getVideoSources(
           primary: 'user',
         }
       : videoSource && !videoSource.isMuted
-      ? {
-          primary: 'display',
-          secondary: 'user',
-        }
-      : {
-          primary: 'display',
-        }
+        ? {
+            primary: 'display',
+            secondary: 'user',
+          }
+        : {
+            primary: 'display',
+          }
     : {
         primary: 'user',
       };

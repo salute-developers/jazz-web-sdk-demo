@@ -126,7 +126,7 @@ export const MainContent: FC = () => {
     if (!secondary) {
       setSwap(false);
     }
-  }, [primary, secondary]);
+  }, [secondary]);
 
   const canSwapped = Boolean(secondary);
 
@@ -135,7 +135,7 @@ export const MainContent: FC = () => {
     room,
     source: canSwapped ? (isSwapped ? secondary : primary) : primary,
     height: 800,
-    quality: 'high',
+    width: 1280,
   });
 
   const secondaryVideoElement = useVideoElement<HTMLDivElement>({
@@ -143,7 +143,7 @@ export const MainContent: FC = () => {
     room,
     source: canSwapped ? (!isSwapped ? secondary : primary) : secondary,
     height: 200,
-    quality: 'medium',
+    width: 600,
   });
 
   const visibleParticipant = participants.find(

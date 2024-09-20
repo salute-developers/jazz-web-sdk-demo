@@ -6,6 +6,9 @@ export function usePoorConnection(jazzRoom: JazzRoom): boolean {
   const isOnline = useQuery(jazzRoom.client.isNetworkOnline);
 
   const connectionStatus = useQuery(jazzRoom.connectionStatus);
+  const status = useQuery(jazzRoom.status);
 
-  return !isOnline || connectionStatus === 'interrupted';
+  return (
+    !isOnline || (status === 'connected' && connectionStatus === 'connecting')
+  );
 }

@@ -5,9 +5,11 @@ import { handleQuery, Query } from '@salutejs/jazz-sdk-web';
 export function useQuery<T>(query: Query<T>): T {
   const [state, setState] = useState<T>(() => query.get());
 
-  useEffect(() => handleQuery(query, (state) => {
+  useEffect(() => {
+    return handleQuery(query, (state) => {
       setState(state);
-    }), [query]);
+    });
+  }, [query]);
 
   return state;
 }
