@@ -1,6 +1,6 @@
 {
   "name": "jazz-sdk-testapp-desktop",
-  "version": "1.44.29",
+  "version": "24.9.4",
   "description": "SaluteJazz SDK Demo Desktop App",
   "main": "build/electron/index.js",
   "scripts": {

@@ -154,33 +154,52 @@ export const ClientCard: ClientCardComponent = ({
 
       console.log('Connecting to room', room);
 
-      try {
-        const [audioStream, videoStream] = await Promise.all([
-          localDevices.getSelectedAudioInputStream(),
-          localDevices.getSelectedVideoInputStream(),
-        ]);
+      const releaseMedia = () => {
+        const displayStream = room.displayStream.get();
 
-        console.log('Add mediaStreams to room');
+        if (displayStream) {
+          console.log('Release display mediaStream');
+
+          localDevices.releaseMediaStream(displayStream);
+        }
+      };
+
+      handleEvent(room.event$, 'destroy', releaseMedia, true);
+
+      try {
+        const audioStream = await localDevices.getSelectedAudioInputStream();
+
+        console.log('Add audio mediaStream to room');
 
         room.setUserAudioInput(audioStream);
-        room.setUserVideoInput(videoStream);
 
         const releaseMedia = () => {
-          console.log('Release mediaStreams');
+          console.log('Release audio mediaStream');
 
           localDevices.releaseMediaStream(audioStream);
-          localDevices.releaseMediaStream(videoStream);
-
-          const displayStream = room.displayStream.get();
-
-          if (displayStream) {
-            localDevices.releaseMediaStream(displayStream);
-          }
         };
 
         handleEvent(room.event$, 'destroy', releaseMedia, true);
       } catch (error) {
-        console.log('Media permission denied');
+        console.log('Media permission for audio is denied');
+      }
+
+      try {
+        const videoStream = await localDevices.getSelectedVideoInputStream();
+
+        console.log('Add video mediaStream to room');
+
+        room.setUserVideoInput(videoStream);
+
+        const releaseMedia = () => {
+          console.log('Release video mediaStream');
+
+          localDevices.releaseMediaStream(videoStream);
+        };
+
+        handleEvent(room.event$, 'destroy', releaseMedia, true);
+      } catch (error) {
+        console.log('Media permission for video is denied');
       }
     },
     [client, localDevices, handleCloseJoinToConferenceModal, eventBus],
@@ -195,6 +214,7 @@ export const ClientCard: ClientCardComponent = ({
           title: form.conferenceName,
           isLobbyEnabled: form.isLobbyEnabled,
           isGuestEnabled: form.isGuestEnabled,
+          jazzNextOnly: form.jazzNextOnly,
         })
         .then((data) => {
           console.log('Create conference', data);

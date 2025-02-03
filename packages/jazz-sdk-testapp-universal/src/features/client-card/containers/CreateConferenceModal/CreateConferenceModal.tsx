@@ -34,6 +34,7 @@ export type CreateConferenceForm = {
   connectToConference: boolean;
   isLobbyEnabled: boolean;
   isGuestEnabled: boolean;
+  jazzNextOnly: boolean;
 };
 
 type CreateConferenceModalProps = {
@@ -49,6 +50,7 @@ function getInitialFormState(): CreateConferenceForm {
     connectToConference: true,
     isLobbyEnabled: false,
     isGuestEnabled: true,
+    jazzNextOnly: false,
   };
 }
 
@@ -116,6 +118,13 @@ const Content: FC<{
     }));
   }, []);
 
+  const handleChangeIsJazzNext = useCallback(() => {
+    setForm((form) => ({
+      ...form,
+      jazzNextOnly: !form.jazzNextOnly,
+    }));
+  }, []);
+
   const handleSubmit = useCallback<FormEventHandler<HTMLFormElement>>(
     (event) => {
       event.preventDefault();
@@ -167,6 +176,11 @@ const Content: FC<{
           label="Enable lobby"
           checked={form.isLobbyEnabled}
           onChange={handleEnableLobby}
+        />
+        <Checkbox
+          label="JazzNext conference"
+          checked={form.jazzNextOnly}
+          onChange={handleChangeIsJazzNext}
         />
         <Button type="submit" view="primary">
           Create conference
