@@ -16,10 +16,10 @@
     "packages/*"
   ],
   "dependencies": {
-    "@salutejs/jazz-sdk-electron": "24.9.4007",
-    "@salutejs/jazz-sdk-electron-plugins": "24.9.4007",
-    "@salutejs/jazz-sdk-web": "24.9.4007",
-    "@salutejs/jazz-sdk-web-plugins": "24.9.4007",
+    "@salutejs/jazz-sdk-electron": "25.2.3",
+    "@salutejs/jazz-sdk-electron-plugins": "25.2.3",
+    "@salutejs/jazz-sdk-web": "25.2.3",
+    "@salutejs/jazz-sdk-web-plugins": "25.2.3",
     "@salutejs/plasma-b2c": "1.221.0",
     "@salutejs/plasma-core": "1.126.0",
     "@salutejs/plasma-icons": "1.155.0",
