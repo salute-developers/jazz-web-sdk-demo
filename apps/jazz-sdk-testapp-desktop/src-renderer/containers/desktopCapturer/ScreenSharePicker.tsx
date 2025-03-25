@@ -4,7 +4,6 @@ import {
   JazzSdkDesktopCapturerService,
   JazzSdkDesktopCapturerSource,
 } from '@salutejs/jazz-sdk-electron-plugins/renderer';
-
 import { useQuery } from 'jazz-sdk-testapp-universal/src/shared/hooks/useQuery';
 
 import { InfoModal } from './InfoModal';

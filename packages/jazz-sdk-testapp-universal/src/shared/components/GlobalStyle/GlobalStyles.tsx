@@ -1,8 +1,6 @@
 import { FC } from 'react';
 
 import { background, surfaceLiquid02 } from '@salutejs/plasma-tokens';
-// TODO: При переезде на plasma-new-hope уйти от использования plasma-tokens-b2c
-// eslint-disable-next-line no-restricted-imports
 import { b2c, light } from '@salutejs/plasma-tokens-b2c';
 import {
   compatible as compatibleType,

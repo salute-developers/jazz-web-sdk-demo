@@ -207,6 +207,9 @@ export const MediaSettings: FC = () => {
           value={audioInputDeviceId}
           items={audioInputDevices}
           onChange={handleChangeAudioInput}
+          placeholder={undefined}
+          onPointerEnterCapture={undefined}
+          onPointerLeaveCapture={undefined}
         />
       ) : null}
       {audioOutputDevices.length ? (
@@ -215,6 +218,9 @@ export const MediaSettings: FC = () => {
           value={audioOutputDeviceId}
           items={audioOutputDevices}
           onChange={handleChangeAudioOutput}
+          placeholder={undefined}
+          onPointerEnterCapture={undefined}
+          onPointerLeaveCapture={undefined}
         />
       ) : null}
       {videoInputDevices.length ? (
@@ -223,6 +229,9 @@ export const MediaSettings: FC = () => {
           value={videoInputDeviceId}
           items={videoInputDevices}
           onChange={handleChangeVideoInput}
+          placeholder={undefined}
+          onPointerEnterCapture={undefined}
+          onPointerLeaveCapture={undefined}
         />
       ) : null}
     </div>

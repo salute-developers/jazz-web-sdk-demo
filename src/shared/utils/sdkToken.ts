@@ -1,5 +1,5 @@
 import { isMatching, P } from 'ts-pattern';
-import uuid from 'uuid';
+import { v4 } from 'uuid';
 
 import { encodeBytesAsBase64 } from './base64';
 
@@ -138,7 +138,7 @@ export async function createSdkToken(
   sdkToken: string;
 }> {
   const {
-    requestId = uuid.v4(),
+    requestId = v4(),
     expireIn = 120,
     iss,
     userEmail,

@@ -111,7 +111,14 @@ export const ViewVideo: FC = () => {
   return (
     <div>
       <Title>View video</Title>
-      <Select value={state} items={SELECT_ITEMS} onChange={handleChange} />
+      <Select
+        value={state}
+        items={SELECT_ITEMS}
+        onChange={handleChange}
+        placeholder={undefined}
+        onPointerEnterCapture={undefined}
+        onPointerLeaveCapture={undefined}
+      />
     </div>
   );
 };

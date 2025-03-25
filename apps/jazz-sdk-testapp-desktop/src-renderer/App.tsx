@@ -1,9 +1,8 @@
 import React from 'react';
 
 import { desktopCapturerPlugin } from '@salutejs/jazz-sdk-electron-plugins/renderer';
-import ReactDOM from 'react-dom/client';
-
 import { AppContainer } from 'jazz-sdk-testapp-universal/src';
+import ReactDOM from 'react-dom/client';
 
 import { DesktopCapturer } from './containers/desktopCapturer';
 
