@@ -2,14 +2,17 @@ import { useEffect, useMemo, useState } from 'react';
 
 import {
   getActivity,
-  handleEvent,
   JazzActivity,
+  JazzActivityEventReaction,
   JazzReactionType,
   JazzRoom,
   JazzRoomParticipantId,
 } from '@salutejs/jazz-sdk-web';
+import { delay, filter, of, switchMap, tap } from 'rxjs';
 
 import { useQuery } from './useQuery';
+
+const REACTION_EXPIRATION_INTERVAL = 3_000; // ms
 
 export function useReactions(
   room: JazzRoom,
@@ -32,31 +35,27 @@ export function useReactions(
     if (!participantId) {
       return;
     }
-    setReaction(activity.reactions.get().get(participantId)?.reaction);
 
-    const unsubscribeReaction = handleEvent(
-      activity.event$,
-      'reaction',
-      ({ payload }) => {
-        if (payload.participantId !== participantId) return;
-
-        setReaction(payload.reaction);
-      },
-    );
-
-    const unsubscribeReleaseReaction = handleEvent(
-      activity.event$,
-      'releaseReaction',
-      ({ payload }) => {
-        if (payload.participantId !== participantId) return;
-
-        setReaction(undefined);
-      },
-    );
+    const subscription = activity.event$
+      .pipe(
+        filter((event): event is JazzActivityEventReaction => event.type === 'reaction'),
+        filter(({ payload }) => payload.participantId === participantId),
+        tap(({ payload }) => {
+          setReaction(payload.reaction);
+        }),
+        switchMap(({ payload }) =>
+          of(payload).pipe(
+            delay(REACTION_EXPIRATION_INTERVAL),
+            tap(() => {
+              setReaction(undefined);
+            }),
+          ),
+        ),
+      )
+      .subscribe();
 
     return () => {
-      unsubscribeReaction();
-      unsubscribeReleaseReaction();
+      subscription.unsubscribe();
     };
   }, [room, activity, participantId]);
 

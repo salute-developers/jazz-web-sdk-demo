@@ -1,21 +1,15 @@
 import { RefObject, useEffect, useMemo, useRef, useState } from 'react';
 
 import {
-  handleEvent,
-  handleEvents,
   JazzRoom,
   JazzRoomParticipantId,
-  JazzRoomVideoSource,
 } from '@salutejs/jazz-sdk-web';
 import {
-  ElementEvent,
-  getVideoElementPool,
+  getVideoElementPoolForRoom,
+  VideoElementPoolForRoomVideoSource,
 } from '@salutejs/jazz-sdk-web-plugins';
-import { Observable } from 'rxjs';
 
-import { createEventBus } from '../utils/createEventBus';
-
-type VideoSource = JazzRoomVideoSource | undefined;
+type VideoSource = VideoElementPoolForRoomVideoSource | undefined;
 
 export function useVideoElement<
   E extends HTMLElement = HTMLElement,
@@ -24,70 +18,47 @@ export function useVideoElement<
   room: JazzRoom;
   participantId: JazzRoomParticipantId | undefined;
   source: T;
-  height: number;
-  width: number;
 }): {
   isVideoPaused: boolean;
   isVideoMuted: boolean;
-  event$: Observable<ElementEvent>;
   videoRootRef: RefObject<E>;
   source: T;
 } {
-  const { height, width, participantId, room, source } = options;
+  const { participantId, room, source } = options;
   const [isVideoPaused, setIsVideoPaused] = useState(true);
   const [isVideoMuted, setIsVideoMuted] = useState(true);
 
   const videoElementPool = useMemo(() => {
-    return getVideoElementPool(room);
+    return getVideoElementPoolForRoom(room);
   }, [room]);
 
   const videoRootRef = useRef<E>(null);
-
-  const [state] = useState(() => createEventBus<ElementEvent>());
 
   useEffect(() => {
     if (!participantId || !source) {
       return;
     }
-    const { videoElement, isMuted, isPaused, event$, releaseElement } =
-      videoElementPool.getElement(participantId, {
-        source,
-        height,
-        width,
-      });
-
-    setIsVideoMuted(isMuted.get());
-    setIsVideoPaused(isPaused.get());
-
-    const unsubscribeEvents = handleEvents(event$, (event) => state(event));
-
-    const unsubscribeAddTrack = handleEvent(
-      event$,
-      'addTrack',
-      ({ payload }) => {
-        setIsVideoPaused(payload.isPaused);
-        setIsVideoMuted(payload.isMuted);
-      },
-    );
-
-    const unsubscribeRemoveTrack = handleEvent(event$, 'removeTrack', () => {
-      setIsVideoPaused(true);
-      setIsVideoMuted(true);
+    const {
+      videoElement,
+      isMuted,
+      isPaused,
+      on: eventsOn,
+      release: releaseVideoElement,
+    } = videoElementPool.getVideoElement(participantId, {
+      source,
     });
 
-    const unsubscribeMuteChange = handleEvent(
-      event$,
-      'trackMuteChanged',
-      ({ payload }) => {
-        setIsVideoPaused(payload.isPaused);
-        setIsVideoMuted(payload.isMuted);
-      },
-    );
+    setIsVideoMuted(isMuted());
+    setIsVideoPaused(isPaused());
 
-    const unsubscribePaused = handleEvent(
-      event$,
-      'elementsPaused',
-      ({ payload }) => {
+    const unsubscribeUpdateTrack = eventsOn('trackUpdated', (_, payload) => {
+      setIsVideoPaused(payload.isPaused);
+      setIsVideoMuted(payload.isMuted);
+    });
+
+    const unsubscribePaused = eventsOn(
+      'elementsPausedChanged',
+      (_, payload) => {
         setIsVideoPaused(payload.isPaused);
       },
     );
@@ -96,18 +67,14 @@ export function useVideoElement<
     videoRootRef.current?.replaceChildren(videoElement);
 
     return () => {
-      unsubscribeAddTrack();
-      unsubscribeRemoveTrack();
-      unsubscribeMuteChange();
+      unsubscribeUpdateTrack();
       unsubscribePaused();
-      unsubscribeEvents();
 
-      releaseElement();
+      releaseVideoElement();
     };
-  }, [height, participantId, room, source, state, videoElementPool, width]);
+  }, [participantId, room, source, videoElementPool]);
 
   return {
-    event$: state.event$,
     isVideoMuted,
     isVideoPaused,
     videoRootRef,

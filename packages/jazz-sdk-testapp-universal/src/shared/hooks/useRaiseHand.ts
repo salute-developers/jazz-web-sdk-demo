@@ -29,7 +29,7 @@ export function useRaiseHand(
     if (!participantId) {
       return;
     }
-    setisRaisedHand(activity.handsRaised.get().has(participantId));
+    setisRaisedHand(activity.handsRaised().has(participantId));
 
     const unsubscribeRaiseHand = handleEvent(
       activity.event$,

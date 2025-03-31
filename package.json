@@ -4,6 +4,8 @@
   "description": "SaluteJazz SDK Demo App",
   "private": true,
   "scripts": {
+    "start:web": "npm -w jazz-sdk-testapp-web run start",
+    "start:desktop": "npm -w jazz-sdk-testapp-desktop run start",
     "clean": "rm -rf dist",
     "lint": "npm-run-all lint:*",
     "lint:eslint": "npm run eslint",
@@ -16,10 +18,10 @@
     "packages/*"
   ],
   "dependencies": {
-    "@salutejs/jazz-sdk-electron": "25.2.3",
-    "@salutejs/jazz-sdk-electron-plugins": "25.2.3",
-    "@salutejs/jazz-sdk-web": "25.2.3",
-    "@salutejs/jazz-sdk-web-plugins": "25.2.3",
+    "@salutejs/jazz-sdk-electron": "25.2.4",
+    "@salutejs/jazz-sdk-electron-plugins": "25.2.4",
+    "@salutejs/jazz-sdk-web": "25.2.4",
+    "@salutejs/jazz-sdk-web-plugins": "25.2.4",
     "@salutejs/plasma-b2c": "1.221.0",
     "@salutejs/plasma-core": "1.126.0",
     "@salutejs/plasma-icons": "1.155.0",
