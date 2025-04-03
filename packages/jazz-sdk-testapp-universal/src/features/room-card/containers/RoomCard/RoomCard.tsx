@@ -130,9 +130,7 @@ export const RoomCard: FC<RoomCardProps> = ({
     useVideoElement<HTMLDivElement>({
       participantId: visibleParticipantId,
       room,
-      source: primary,
-      height: 140,
-      width: 140,
+      source: primary === 'display' ? 'displayScreen' : 'video',
     });
 
   useEffect(() => {
@@ -261,7 +259,7 @@ export const RoomCard: FC<RoomCardProps> = ({
             ref={videoRootRef}
             data-paused={booleanAttribute(isVideoMuted)}
             data-is-invert={booleanAttribute(
-              source === 'display' ? false : isLocalParticipant,
+              source === 'displayScreen' ? false : isLocalParticipant,
             )}
             data-fit="cover"
           />

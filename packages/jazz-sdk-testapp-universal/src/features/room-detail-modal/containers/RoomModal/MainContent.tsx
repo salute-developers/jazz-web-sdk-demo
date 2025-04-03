@@ -4,6 +4,7 @@ import {
   getActivity,
   JazzRoom,
   JazzRoomParticipant,
+  MediaType,
 } from '@salutejs/jazz-sdk-web';
 import { Body2, Button } from '@salutejs/plasma-b2c';
 import { blackSecondary, dark01, white } from '@salutejs/plasma-tokens';
@@ -122,6 +123,11 @@ export const MainContent: FC = () => {
 
   const { primary, secondary } = useVideoSources(visibleParticipantId);
 
+  const primarySource: MediaType =
+    primary === 'display' ? 'displayScreen' : 'video';
+  const secondarySource: MediaType =
+    secondary === 'display' ? 'displayScreen' : 'video';
+
   useEffect(() => {
     if (!secondary) {
       setSwap(false);
@@ -133,17 +139,21 @@ export const MainContent: FC = () => {
   const primaryVideoElement = useVideoElement<HTMLDivElement>({
     participantId: visibleParticipantId,
     room,
-    source: canSwapped ? (isSwapped ? secondary : primary) : primary,
-    height: 800,
-    width: 1280,
+    source: canSwapped
+      ? isSwapped
+        ? secondarySource
+        : primarySource
+      : primarySource,
   });
 
   const secondaryVideoElement = useVideoElement<HTMLDivElement>({
     participantId: visibleParticipantId,
     room,
-    source: canSwapped ? (!isSwapped ? secondary : primary) : secondary,
-    height: 200,
-    width: 600,
+    source: canSwapped
+      ? !isSwapped
+        ? secondarySource
+        : primarySource
+      : secondarySource,
   });
 
   const visibleParticipant = participants.find(
@@ -159,10 +169,12 @@ export const MainContent: FC = () => {
         ref={primaryVideoElement.videoRootRef}
         data-paused={booleanAttribute(primaryVideoElement.isVideoPaused)}
         data-is-invert={booleanAttribute(
-          primaryVideoElement.source === 'display' ? false : isLocalParticipant,
+          primaryVideoElement.source === 'displayScreen'
+            ? false
+            : isLocalParticipant,
         )}
         data-is-shading={booleanAttribute(
-          primaryVideoElement.source === 'display' && isLocalParticipant,
+          primaryVideoElement.source === 'displayScreen' && isLocalParticipant,
         )}
         data-fit="cover"
       />
@@ -176,12 +188,13 @@ export const MainContent: FC = () => {
             ref={secondaryVideoElement.videoRootRef}
             data-paused={booleanAttribute(secondaryVideoElement.isVideoPaused)}
             data-is-invert={booleanAttribute(
-              secondaryVideoElement.source === 'display'
+              secondaryVideoElement.source === 'displayScreen'
                 ? false
                 : isLocalParticipant,
             )}
             data-is-shading={booleanAttribute(
-              secondaryVideoElement.source === 'display' && isLocalParticipant,
+              secondaryVideoElement.source === 'displayScreen' &&
+                isLocalParticipant,
             )}
             data-fit="cover"
           />

@@ -1,9 +1,8 @@
 import { FC, useCallback, useEffect, useMemo, useState } from 'react';
 
-import { handleEvent } from '@salutejs/jazz-sdk-web';
 import {
-  getVideoElementPool,
-  PausedMediaTypes,
+  getVideoElementPoolForRoom,
+  VideoElementPoolSettingsPausedSources,
 } from '@salutejs/jazz-sdk-web-plugins';
 import { Body2, DropdownItemProps, Select } from '@salutejs/plasma-b2c';
 import styled from 'styled-components/macro';
@@ -43,7 +42,7 @@ const SELECT_ITEMS: DropdownItemProps[] = [
   },
 ];
 
-function getActiveState(pausedTypes: PausedMediaTypes): ViewState {
+function getActiveState(pausedTypes: VideoElementPoolSettingsPausedSources): ViewState {
   if (pausedTypes.displayScreen && pausedTypes.video) {
     return 'allPause';
   } else if (pausedTypes.displayScreen) {
@@ -61,18 +60,17 @@ export const ViewVideo: FC = () => {
   const [state, setState] = useState<ViewState>('allPlay');
 
   const videoElementPool = useMemo(() => {
-    return getVideoElementPool(room);
+    return getVideoElementPoolForRoom(room);
   }, [room]);
 
   useEffect(() => {
-    const pausedTypes = videoElementPool.getPausedMediaTypes();
+    const pausedTypes = videoElementPool.getPausedVideoSources();
     setState(getActiveState(pausedTypes));
 
-    const unsubscribe = handleEvent(
-      videoElementPool.event$,
-      'mediaPaused',
-      ({ payload }) => {
-        setState(getActiveState(payload));
+    const unsubscribe = videoElementPool.on(
+      'pauseVideSourcesChange',
+      (_, payload) => {
+        setState(getActiveState(payload.pausedVideoSources));
       },
     );
 
@@ -85,21 +83,21 @@ export const ViewVideo: FC = () => {
     (id: ViewState) => {
       switch (id) {
         case 'allPlay': {
-          videoElementPool.playSource();
+          videoElementPool.playVideoSources(['displayScreen', 'video']);
           break;
         }
         case 'allPause': {
-          videoElementPool.pauseSource();
+          videoElementPool.pauseVideoSources(['displayScreen', 'video']);
           break;
         }
         case 'playOnlyCamera': {
-          videoElementPool.playSource('user');
-          videoElementPool.pauseSource('display');
+          videoElementPool.playVideoSources('video');
+          videoElementPool.pauseVideoSources('displayScreen');
           break;
         }
         case 'playOnlyDesktop': {
-          videoElementPool.pauseSource('user');
-          videoElementPool.playSource('display');
+          videoElementPool.pauseVideoSources('video');
+          videoElementPool.playVideoSources('displayScreen');
           break;
         }
         default:

@@ -87,7 +87,7 @@ export function useReactions(room: JazzRoom): {
 
     const unsubscribeReleaseReaction = handleEvent(
       activity.event$,
-      'releaseReaction',
+      'reaction',
       () => {
         const expirationDate = Date.now() - REACTION_EXPIRATION_INTERVAL;
 

@@ -43,8 +43,8 @@ export const RoomInfoModal: FC<{
   const handleClose = useCallback(() => setIsOpen(false), []);
 
   const domainUrl = useQuery(room.params.domainUrl);
-  const conferenceId = useQuery(room.params.conferenceId);
-  const conferencePassword = useQuery(room.params.conferencePassword);
+  const conferenceId = room.params.conferenceId;
+  const conferencePassword = room.params.conferencePassword;
 
   return (
     <StyledModal isOpen={isOpen} onClose={handleClose}>

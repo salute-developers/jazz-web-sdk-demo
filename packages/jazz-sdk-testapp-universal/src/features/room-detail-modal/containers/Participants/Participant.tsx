@@ -172,17 +172,13 @@ export const Participant = forwardRef<HTMLDivElement, ParticipantProps>(
     const primaryVideoElement = useVideoElement<HTMLDivElement>({
       participantId: participant.id,
       room,
-      source: primary,
-      height: 150,
-      width: 300,
+      source: primary === 'display' ? 'displayScreen' : 'video',
     });
 
     const secondaryVideoElement = useVideoElement<HTMLDivElement>({
       participantId: participant.id,
       room,
-      source: secondary,
-      height: 100,
-      width: 200,
+      source: secondary === 'display' ? 'displayScreen' : 'video',
     });
 
     const useName = isLocalParticipant
@@ -192,11 +188,11 @@ export const Participant = forwardRef<HTMLDivElement, ParticipantProps>(
     const { isRaisedHand } = useRaiseHand(room, participant.id);
 
     const isScreenShareShow =
-      primaryVideoElement.source === 'display' &&
+      primaryVideoElement.source === 'displayScreen' &&
       !primaryVideoElement.isVideoMuted;
 
     const isVideoMuted =
-      primaryVideoElement.source === 'user'
+      primaryVideoElement.source === 'video'
         ? primaryVideoElement.isVideoMuted
         : secondaryVideoElement.isVideoMuted;
 
@@ -217,7 +213,7 @@ export const Participant = forwardRef<HTMLDivElement, ParticipantProps>(
           ref={primaryVideoElement.videoRootRef}
           data-paused={booleanAttribute(primaryVideoElement.isVideoPaused)}
           data-is-invert={booleanAttribute(
-            primaryVideoElement.source === 'display'
+            primaryVideoElement.source === 'displayScreen'
               ? false
               : isLocalParticipant,
           )}
@@ -231,7 +227,7 @@ export const Participant = forwardRef<HTMLDivElement, ParticipantProps>(
                 secondaryVideoElement.isVideoPaused,
               )}
               data-is-invert={booleanAttribute(
-                secondaryVideoElement.source === 'display'
+                secondaryVideoElement.source === 'displayScreen'
                   ? false
                   : isLocalParticipant,
               )}
