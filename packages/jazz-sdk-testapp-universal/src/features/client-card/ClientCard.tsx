@@ -134,7 +134,7 @@ export const ClientCard: ClientCardComponent = ({
 
       try {
         await client.conferences.getDetails({
-          conferenceId: form.roomId,
+          roomId: form.roomId,
           password: form.password,
         });
       } catch (error) {
@@ -148,7 +148,7 @@ export const ClientCard: ClientCardComponent = ({
       }
 
       const room = client.conferences.join({
-        conferenceId: form.roomId,
+        roomId: form.roomId,
         password: form.password,
       });
 
