@@ -52,20 +52,20 @@ export const RoomInfoModal: FC<{
       <TextField
         view="innerLabel"
         readOnly
-        caption="domainUrl"
+        caption="Domain url"
         value={domainUrl}
       />
       <Wrapper>
         <TextField
           readOnly
           view="innerLabel"
-          caption="conferenceId"
+          caption="Room id"
           value={conferenceId}
         />
         <TextField
           readOnly
           view="innerLabel"
-          caption="conferencePassword"
+          caption="Room password"
           value={conferencePassword}
         />
       </Wrapper>

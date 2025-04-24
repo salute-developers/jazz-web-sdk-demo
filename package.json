@@ -1,6 +1,6 @@
 {
   "name": "jazz-sdk-demo-web",
-  "version": "25.2.4",
+  "version": "25.41.0",
   "description": "SaluteJazz SDK Demo App",
   "private": true,
   "scripts": {
@@ -11,17 +11,18 @@
     "lint:eslint": "npm run eslint",
     "lint:tsc": "tsc --noEmit",
     "eslint": "eslint --cache --max-warnings 0 \"packages/*/{src,src-renderer,src-main,src-preload}/**/*.{ts,tsx}\" \"apps/*/{src,src-renderer,src-main,src-preload}/**/*.{ts,tsx}\"",
-    "eslint-fix": "npm run eslint -- --fix"
+    "eslint-fix": "npm run eslint -- --fix",
+    "version": "npm version $npm_package_version -w apps -w packages --no-git-tag-version --no-commit-hooks"
   },
   "workspaces": [
     "apps/*",
     "packages/*"
   ],
   "dependencies": {
-    "@salutejs/jazz-sdk-electron": "25.2.4",
-    "@salutejs/jazz-sdk-electron-plugins": "25.2.4",
-    "@salutejs/jazz-sdk-web": "25.2.4",
-    "@salutejs/jazz-sdk-web-plugins": "25.2.4",
+    "@salutejs/jazz-sdk-electron": "25.41.0",
+    "@salutejs/jazz-sdk-electron-plugins": "25.41.0",
+    "@salutejs/jazz-sdk-web": "25.41.0",
+    "@salutejs/jazz-sdk-web-plugins": "25.41.0",
     "@salutejs/plasma-b2c": "1.221.0",
     "@salutejs/plasma-core": "1.126.0",
     "@salutejs/plasma-icons": "1.155.0",
