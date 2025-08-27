@@ -3,11 +3,15 @@ import { useEffect, useState } from 'react';
 import { createVideoPool, VideoPool } from './utils';
 
 export function useVideoPool(): VideoPool {
-  const [videoPool] = useState<VideoPool>(() => createVideoPool());
+  const [videoPool] = useState<VideoPool>(() => {
+    return createVideoPool();
+  });
 
-  useEffect(() => () => {
+  useEffect(() => {
+    return () => {
       videoPool.releaseAll();
-    }, [videoPool]);
+    };
+  }, [videoPool]);
 
   return videoPool;
 }

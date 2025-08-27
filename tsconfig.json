@@ -8,6 +8,7 @@
     "lib": ["esnext", "dom", "dom.iterable"],
     "jsx": "react-jsx",
     "typeRoots": ["types", "node_modules/@types"],
+    "types": ["web-assets"],
     "allowJs": true,
     "allowSyntheticDefaultImports": true,
     "experimentalDecorators": true,

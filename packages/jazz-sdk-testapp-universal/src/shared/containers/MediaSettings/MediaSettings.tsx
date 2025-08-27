@@ -1,4 +1,4 @@
-import { FC, useCallback, useEffect, useMemo, useState } from 'react';
+import { FC, useCallback, useEffect, useState } from 'react';
 
 import {
   getLocalDevices,
@@ -11,6 +11,7 @@ import { Body2, Button, Select } from '@salutejs/plasma-b2c';
 import styled from 'styled-components/macro';
 
 import { useGlobalContext } from '../../contexts/globalContext';
+import { useSDKContext } from '../../contexts/sdkContext';
 
 const Title = styled(Body2)`
   margin-bottom: 16px;
@@ -18,7 +19,7 @@ const Title = styled(Body2)`
 
 const StyledSelect = styled(Select)`
   margin-bottom: 16px;
-`;
+` as typeof Select;
 
 type SelectItem = {
   label: string;
@@ -33,7 +34,8 @@ function getSelectItems(items: ReadonlyArray<LocalMediaDevice>): SelectItem[] {
 }
 
 export const MediaSettings: FC = () => {
-  const { sdk, eventBus } = useGlobalContext();
+  const { eventBus } = useGlobalContext();
+  const { sdk } = useSDKContext();
 
   const [audioInputDevices, setAudioInputDevices] = useState<SelectItem[]>([]);
   const [audioInputDeviceId, setAudioInputDeviceId] = useState<
@@ -52,15 +54,9 @@ export const MediaSettings: FC = () => {
     string | undefined
   >(undefined);
 
-  const localDevices = useMemo(() => {
-    if (!sdk) return undefined;
-
-    return getLocalDevices(sdk);
-  }, [sdk]);
+  const localDevices = getLocalDevices(sdk);
 
   useEffect(() => {
-    if (!localDevices) return;
-
     setAudioInputDevices(getSelectItems(localDevices.audioInputDevices.get()));
     setAudioOutputDevices(
       getSelectItems(localDevices.audioOutputDevices.get()),
@@ -122,8 +118,6 @@ export const MediaSettings: FC = () => {
 
   const handleChangeAudioInput = useCallback(
     (id: string) => {
-      if (!localDevices) return;
-
       const audioInputDevices = localDevices.audioInputDevices.get();
       const audioInputDevice = audioInputDevices.find(
         ({ deviceId }) => deviceId === id,
@@ -138,8 +132,6 @@ export const MediaSettings: FC = () => {
 
   const handleChangeAudioOutput = useCallback(
     (id: string) => {
-      if (!localDevices) return;
-
       const audioOutputDevices = localDevices.audioOutputDevices.get();
       const audioOutputDevice = audioOutputDevices.find(
         ({ deviceId }) => deviceId === id,
@@ -154,8 +146,6 @@ export const MediaSettings: FC = () => {
 
   const handleChangeVideoInput = useCallback(
     (id: string) => {
-      if (!localDevices) return;
-
       const videoInputDevices = localDevices.videoInputDevices.get();
       const videoInputDevice = videoInputDevices.find(
         ({ deviceId }) => deviceId === id,
@@ -170,10 +160,7 @@ export const MediaSettings: FC = () => {
 
   const handleRequestPermissions = useCallback(() => {
     localDevices
-      ?.requestUserMediaPermissions(
-        USER_MEDIA_TYPE.AUDIO,
-        USER_MEDIA_TYPE.VIDEO,
-      )
+      .requestUserMediaPermissions(USER_MEDIA_TYPE.AUDIO, USER_MEDIA_TYPE.VIDEO)
       .catch(() => {
         eventBus({
           type: 'error',
@@ -207,9 +194,6 @@ export const MediaSettings: FC = () => {
           value={audioInputDeviceId}
           items={audioInputDevices}
           onChange={handleChangeAudioInput}
-          placeholder={undefined}
-          onPointerEnterCapture={undefined}
-          onPointerLeaveCapture={undefined}
         />
       ) : null}
       {audioOutputDevices.length ? (
@@ -218,9 +202,6 @@ export const MediaSettings: FC = () => {
           value={audioOutputDeviceId}
           items={audioOutputDevices}
           onChange={handleChangeAudioOutput}
-          placeholder={undefined}
-          onPointerEnterCapture={undefined}
-          onPointerLeaveCapture={undefined}
         />
       ) : null}
       {videoInputDevices.length ? (
@@ -229,9 +210,6 @@ export const MediaSettings: FC = () => {
           value={videoInputDeviceId}
           items={videoInputDevices}
           onChange={handleChangeVideoInput}
-          placeholder={undefined}
-          onPointerEnterCapture={undefined}
-          onPointerLeaveCapture={undefined}
         />
       ) : null}
     </div>

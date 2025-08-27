@@ -1,6 +1,8 @@
-import { createContext, FC, useContext, useEffect, useState } from 'react';
+import { createContext, FC, useContext, useEffect, useMemo } from 'react';
 
-import { handleEvent, JazzRoom, JazzSdk } from '@salutejs/jazz-sdk-web';
+import { JazzRoom, JazzSdk } from '@salutejs/jazz-sdk-web';
+import { createScope } from 'nrgy';
+import { Controller } from 'nrgy/mvc';
 import { Observable } from 'rxjs';
 
 import { createEventBus, EventBus } from '../utils/createEventBus';
@@ -40,11 +42,25 @@ export type Events =
       payload: {
         sdk: JazzSdk | undefined;
       };
+    }
+  | {
+      type: 'message';
+      payload: {
+        type: string;
+        payload?: unknown;
+      };
     };
 
+export type Feature = {
+  id: string;
+  value: string;
+  event: {
+    type: string;
+    payload?: unknown;
+  };
+};
+
 export type GlobalContext = {
-  sdk: JazzSdk | undefined;
-  setSdk: (sdk: JazzSdk | undefined) => void;
   eventBus: EventBus<Events>;
   event$: Observable<Events>;
   devices: {
@@ -57,22 +73,14 @@ export type GlobalContext = {
   };
 };
 
-function getInitialState(): GlobalContext {
+function createGlobalContext(): Controller<GlobalContext> {
+  const scope = createScope();
   const eventBus = createEventBus<Events>();
-
   return {
-    sdk: undefined,
-    setSdk: (sdk) => {
-      eventBus({
-        type: 'setSdk',
-        payload: {
-          sdk,
-        },
-      });
-    },
     devices: deviceStorage,
     eventBus,
     event$: eventBus.event$,
+    destroy: scope.destroy,
   };
 }
 
@@ -91,23 +99,15 @@ export function useGlobalContext(): GlobalContext {
 export const GlobalContextProvider: FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
-  const [state, setState] = useState<GlobalContext>(getInitialState);
+  const context = useMemo(() => createGlobalContext(), []);
 
   useEffect(() => {
-    const unsubscribeSetSdk = handleEvent(
-      state.event$,
-      'setSdk',
-      ({ payload: { sdk } }) => {
-        setState((prevState) => ({ ...prevState, sdk }));
-      },
-    );
-
     return () => {
-      unsubscribeSetSdk();
+      context.destroy();
     };
-  }, [state]);
+  }, [context]);
 
   return (
-    <globalContext.Provider value={state}>{children}</globalContext.Provider>
+    <globalContext.Provider value={context}>{children}</globalContext.Provider>
   );
 };

@@ -1,7 +1,7 @@
 import { FC, useEffect, useState } from 'react';
 
 import {
-  createJazzWebSdk,
+  createJazzSdkWeb,
   JazzSdk,
   JazzSdkPlugin,
   SDK_VERSION,
@@ -9,18 +9,24 @@ import {
 import {
   audioOutputMixerPlugin,
   logsPlugin,
+  videoEffectsPlugin,
   videoElementPoolPlugin,
 } from '@salutejs/jazz-sdk-web-plugins';
 import {
   BodyM,
   ModalsProvider,
   NotificationsProvider,
+  PopupBaseProvider,
 } from '@salutejs/plasma-b2c';
-import { surfaceSolid02, tertiary } from '@salutejs/plasma-tokens';
+import {
+  surfaceSolidSecondary as surfaceSolid02,
+  textTertiary as tertiary,
+} from '@salutejs/plasma-themes/tokens';
 import styled from 'styled-components/macro';
 
 import { ErrorModal } from './features/error-modal';
 import { Lobby } from './features/lobby';
+import { VirtualBackgrounds } from './features/virtual-backgrounds';
 import { GlobalStyles } from './shared/components/GlobalStyle';
 import { AudioGainSettings } from './shared/containers/AudioSettings';
 import { MediaSettings } from './shared/containers/MediaSettings';
@@ -29,6 +35,7 @@ import {
   GlobalContextProvider,
   useGlobalContext,
 } from './shared/contexts/globalContext';
+import { SDKContextProvider } from './shared/contexts/sdkContext';
 import { useDeviceSync } from './shared/hooks/useDeviceSync';
 import { ClientCardListWidget } from './widgets/ClientCardListWidget';
 
@@ -82,11 +89,19 @@ const STATUS: Record<InitSDKStatus, string> = {
 };
 
 const App: FC<{
+  createJazzSdk: typeof createJazzSdkWeb;
   jazzSdkPlugins: ReadonlyArray<JazzSdkPlugin>;
   DesktopCapturerComponent?: FC<{ jazzSdk: JazzSdk }>;
+  AdditionalVersionsComponent?: FC<{ jazzSdk: JazzSdk; InfoTextComponent: FC }>;
 }> = (props) => {
-  const { jazzSdkPlugins, DesktopCapturerComponent } = props;
-  const { setSdk, eventBus, sdk, devices } = useGlobalContext();
+  const {
+    jazzSdkPlugins,
+    DesktopCapturerComponent,
+    createJazzSdk,
+    AdditionalVersionsComponent,
+  } = props;
+  const { eventBus, devices } = useGlobalContext();
+  const [sdk, setSdk] = useState<JazzSdk | undefined>();
 
   const [status, setStatus] = useState<InitSDKStatus>('process');
 
@@ -94,8 +109,8 @@ const App: FC<{
     let jazzSdk: JazzSdk | undefined;
     let isDestroyed = false;
     // create sdk
-    createJazzWebSdk({
-      userAgent: 'Jazz Test App',
+    createJazzSdk({
+      clientName: 'JazzTestApp',
       plugins: [
         ...jazzSdkPlugins,
         videoElementPoolPlugin(),
@@ -104,6 +119,7 @@ const App: FC<{
           logLevel: 'debug',
           isEnableStdout: true,
         }),
+        videoEffectsPlugin(),
       ],
       audioInputDeviceId: devices.getAudioInput(),
       audioOutputDeviceId: devices.getAudioOutput(),
@@ -132,25 +148,35 @@ const App: FC<{
       jazzSdk?.destroy();
       isDestroyed = true;
     };
-  }, [setSdk, eventBus, devices, jazzSdkPlugins]);
+  }, [setSdk, eventBus, devices, jazzSdkPlugins, createJazzSdk]);
 
   return (
     <Root>
       <SDKInfo>
         <SDKInfoText>SDK version: {SDK_VERSION}</SDKInfoText>
         <SDKInfoText>SDK status: {STATUS[status]}</SDKInfoText>
+        {AdditionalVersionsComponent && sdk ? (
+          <AdditionalVersionsComponent
+            jazzSdk={sdk}
+            InfoTextComponent={SDKInfoText}
+          />
+        ) : null}
       </SDKInfo>
-      {sdk && <Content />}
-      <ErrorModal />
-      {DesktopCapturerComponent && sdk ? (
-        <DesktopCapturerComponent jazzSdk={sdk} />
-      ) : null}
+      {sdk && (
+        <SDKContextProvider sdk={sdk}>
+          <Content sdk={sdk} />
+          <ErrorModal />
+          {DesktopCapturerComponent ? (
+            <DesktopCapturerComponent jazzSdk={sdk} />
+          ) : null}
+        </SDKContextProvider>
+      )}
     </Root>
   );
 };
 
-const Content: FC = () => {
-  useDeviceSync();
+const Content: FC<{ sdk: JazzSdk }> = ({ sdk }) => {
+  useDeviceSync({ sdk });
 
   return (
     <RootContent>
@@ -160,6 +186,7 @@ const Content: FC = () => {
       <RightContent>
         <Lobby />
         <AudioGainSettings />
+        <VirtualBackgrounds />
         <MediaSettings />
       </RightContent>
     </RootContent>
@@ -167,21 +194,32 @@ const Content: FC = () => {
 };
 
 export const AppContainer: FC<{
+  createJazzSdk: typeof createJazzSdkWeb;
   jazzSdkPlugins?: ReadonlyArray<JazzSdkPlugin> | undefined;
   DesktopCapturerComponent?: FC<{ jazzSdk: JazzSdk }>;
-}> = ({ DesktopCapturerComponent, jazzSdkPlugins = [] }) => {
+  AdditionalVersionsComponent?: FC<{ jazzSdk: JazzSdk; InfoTextComponent: FC }>;
+}> = ({
+  DesktopCapturerComponent,
+  jazzSdkPlugins = [],
+  createJazzSdk,
+  AdditionalVersionsComponent,
+}) => {
   return (
     <GlobalContextProvider>
       <ClientsContextProvider>
-        <ModalsProvider>
-          <NotificationsProvider>
-            <GlobalStyles />
-            <App
-              jazzSdkPlugins={jazzSdkPlugins}
-              DesktopCapturerComponent={DesktopCapturerComponent}
-            />
-          </NotificationsProvider>
-        </ModalsProvider>
+        <PopupBaseProvider>
+          <ModalsProvider>
+            <NotificationsProvider>
+              <GlobalStyles />
+              <App
+                createJazzSdk={createJazzSdk}
+                jazzSdkPlugins={jazzSdkPlugins}
+                DesktopCapturerComponent={DesktopCapturerComponent}
+                AdditionalVersionsComponent={AdditionalVersionsComponent}
+              />
+            </NotificationsProvider>
+          </ModalsProvider>
+        </PopupBaseProvider>
       </ClientsContextProvider>
     </GlobalContextProvider>
   );

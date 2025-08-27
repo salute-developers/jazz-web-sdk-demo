@@ -3,7 +3,11 @@ import { FC, useCallback, useEffect, useMemo, useState } from 'react';
 import { getLobby, handleEvent, JazzRoomStatus } from '@salutejs/jazz-sdk-web';
 import { Body2, Button } from '@salutejs/plasma-b2c';
 import { IconDisplay } from '@salutejs/plasma-icons';
-import { dark01, tertiary, white } from '@salutejs/plasma-tokens';
+import {
+  onDarkSurfaceSolidPrimary as dark01,
+  textTertiary as tertiary,
+  onDarkTextPrimary as white,
+} from '@salutejs/plasma-themes/tokens';
 import styled from 'styled-components/macro';
 
 import { VideoContainer } from '../../../../shared/components/VideoContainer';
@@ -15,14 +19,22 @@ import { useParticipants } from '../../../../shared/hooks/useParticipants';
 import { usePoorConnection } from '../../../../shared/hooks/usePoorConnection';
 import { useQuery } from '../../../../shared/hooks/useQuery';
 import { useVideoElement } from '../../../../shared/hooks/useVideoElement';
-import { RoomCardProps } from '../../../../shared/types/roomCard';
 import { booleanAttribute } from '../../../../shared/utils/dataAttributes';
 import { LobbyCard } from '../LobbyCard';
 import { Menu } from '../Menu';
 
+import { RoomCardProps } from './types';
+
 const CustomGlobalMute = styled(GlobalMute)`
   position: absolute;
   left: 4px;
+  top: 4px;
+  z-index: 2;
+`;
+
+const MenuContainer = styled.div`
+  position: absolute;
+  right: 4px;
   top: 4px;
   z-index: 2;
 `;
@@ -49,12 +61,12 @@ const ConnectionPlaceHolder = styled.div`
   align-items: center;
   flex-direction: column;
   gap: 4px;
+`;
 
-  > ${Body2} {
-    padding: 4px;
-    background: #fff;
-    border-radius: 8px;
-  }
+const Body = styled(Body2)`
+  padding: 4px;
+  background: #fff;
+  border-radius: 8px;
 `;
 
 const StyledIconDisplay = styled(IconDisplay)`
@@ -76,6 +88,10 @@ const ViewButton = styled(Button)`
   top: 0;
   left: 0;
   color: ${white};
+
+  &:hover {
+    color: ${white};
+  }
 `;
 
 const Actions = styled.div`
@@ -233,22 +249,22 @@ export const RoomCard: FC<RoomCardProps> = ({
       <Wrapper>
         {poorConnection && (
           <ConnectionPlaceHolder>
-            <Body2>Connection interrupted...</Body2>
+            <Body>Connection interrupted...</Body>
           </ConnectionPlaceHolder>
         )}
         {status === 'connecting' && (
           <ConnectionPlaceHolder>
-            <Body2>Connecting....</Body2>
+            <Body>Connecting....</Body>
           </ConnectionPlaceHolder>
         )}
         {status === 'disconnecting' && (
           <ConnectionPlaceHolder>
-            <Body2>Disconnecting....</Body2>
+            <Body>Disconnecting....</Body>
           </ConnectionPlaceHolder>
         )}
         {status === 'error' && (
           <ConnectionPlaceHolder>
-            <Body2>{errorMessage}</Body2>
+            <Body>{errorMessage}</Body>
             <Button view="critical" onClick={() => room.leave()}>
               Remove
             </Button>
@@ -263,25 +279,27 @@ export const RoomCard: FC<RoomCardProps> = ({
             )}
             data-fit="cover"
           />
-          <ViewButton view="clear" onClick={() => setViewRoom(true)}>
+          <ViewButton
+            stretching="filled"
+            view="clear"
+            onClick={() => setViewRoom(true)}
+          >
             <StyledIconDisplay color={white} />
             View Room
           </ViewButton>
           <CustomGlobalMute room={room} />
-          <Menu />
+          <MenuContainer>
+            <Menu />
+          </MenuContainer>
         </MainContent>
         <Actions>
           <RoomActions room={room} />
         </Actions>
       </Wrapper>
 
-      <RoomDetailModal
-        room={room}
-        isOpen={viewRoom}
-        onClose={() => setViewRoom(false)}
-      />
-      <RoomInfoModal room={room} />
-      <RoomSettingsModal room={room} />
+      <RoomDetailModal isOpen={viewRoom} onClose={() => setViewRoom(false)} />
+      <RoomInfoModal />
+      <RoomSettingsModal />
     </>
   );
 };

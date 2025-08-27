@@ -1,7 +1,7 @@
 import { FC, useCallback } from 'react';
 
 import { Button } from '@salutejs/plasma-b2c';
-import { black } from '@salutejs/plasma-tokens';
+import { onLightTextPrimary as black } from '@salutejs/plasma-themes/tokens';
 import styled from 'styled-components/macro';
 
 import { RoomActions } from '../../../../shared/containers/Actions';
@@ -57,7 +57,7 @@ export const Footer: FC = () => {
   return (
     <Wrapper>
       <LeftSide>
-        <Button view="primary" onClick={handleViewRoomInfo}>
+        <Button view="accent" onClick={handleViewRoomInfo}>
           View room info
         </Button>
         <CustomGlobalMute room={room} iconColor={black} />

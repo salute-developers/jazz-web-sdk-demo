@@ -41,7 +41,7 @@ export const LobbyParticipant = forwardRef<
   return (
     <Root {...otherProps} ref={ref}>
       <Text>{lobbyParticipant.userName}</Text>
-      <Button text="Approve" view="primary" onClick={handleApprove} />
+      <Button text="Approve" view="accent" onClick={handleApprove} />
       <Button text="Deny" onClick={handleDeny} />
     </Root>
   );

@@ -1,13 +1,8 @@
-import { FC, useCallback, useMemo } from 'react';
+import { ComponentProps, FC, useCallback, useMemo } from 'react';
 
-import {
-  Button,
-  Dropdown,
-  DropdownItemProps,
-  DropdownProps,
-} from '@salutejs/plasma-b2c';
+import { Button, Dropdown, DropdownItemProps } from '@salutejs/plasma-b2c';
 import { IconMoreHorizontal } from '@salutejs/plasma-icons';
-import { white } from '@salutejs/plasma-tokens';
+import { onDarkTextPrimary as white } from '@salutejs/plasma-themes/tokens';
 import styled from 'styled-components/macro';
 
 import { useGlobalContext } from '../../../../shared/contexts/globalContext';
@@ -17,7 +12,7 @@ import { useRoomContext } from '../../contexts/roomContext';
 const StyledDropdown = styled(Dropdown)`
   position: absolute;
   top: 4px;
-  right: 4px;
+  transform: translate(-80%, -10%);
   z-index: 2;
 `;
 
@@ -55,7 +50,7 @@ export const Menu: FC = () => {
   }, [localParticipant, userPermissions]);
 
   const handleSelect = useCallback<
-    Exclude<DropdownProps['onItemSelect'], undefined>
+    Exclude<ComponentProps<typeof Dropdown>['onItemSelect'], undefined>
   >(
     (item) => {
       switch (item.value) {
@@ -89,7 +84,9 @@ export const Menu: FC = () => {
 
   return (
     <StyledDropdown items={menuItems} onItemSelect={handleSelect}>
-      <Button view="clear" contentLeft={<IconMoreHorizontal color={white} />} />
+      <Button view="clear">
+        <IconMoreHorizontal color={white} />
+      </Button>
     </StyledDropdown>
   );
 };

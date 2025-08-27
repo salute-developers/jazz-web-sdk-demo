@@ -10,29 +10,19 @@ type SdkTokenState = {
   sub: string;
 };
 
+type ClientState = {
+  sdkTokenState?: SdkTokenState;
+};
+
 type ClientsContext = {
-  clients$: Observable<
-    Map<
-      JazzClient,
-      {
-        sdkTokenState?: SdkTokenState;
-      }
-    >
-  >;
+  clients$: Observable<Map<JazzClient, ClientState>>;
   addClient: (client: JazzClient) => void;
   removeClient: (client: JazzClient) => void;
   loginBySdkToken: (client: JazzClient, state: SdkTokenState) => void;
 };
 
 function getInitialState(): ClientsContext {
-  const clients$ = new BehaviorSubject(
-    new Map<
-      JazzClient,
-      {
-        sdkTokenState?: SdkTokenState;
-      }
-    >(),
-  );
+  const clients$ = new BehaviorSubject(new Map<JazzClient, ClientState>());
   return {
     clients$,
     addClient: (client) => {

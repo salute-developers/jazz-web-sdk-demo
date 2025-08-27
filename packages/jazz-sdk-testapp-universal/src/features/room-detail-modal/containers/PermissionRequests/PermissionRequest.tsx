@@ -77,7 +77,7 @@ export const PermissionRequest = forwardRef<
           <b>{participant?.name}</b>{' '}
           {getMessage(permissionRequest.permissionKey)}
         </Text>
-        <Button onClick={handleAllowPermission} text="Allow" view="primary" />
+        <Button onClick={handleAllowPermission} text="Allow" view="accent" />
         <Button onClick={handleDisallowPermission} text="Disallow" />
       </Root>
     </Wrapper>

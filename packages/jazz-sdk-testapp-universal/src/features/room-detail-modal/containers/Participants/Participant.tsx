@@ -2,14 +2,18 @@ import { forwardRef } from 'react';
 
 import { JazzRoomParticipant } from '@salutejs/jazz-sdk-web';
 import {
-  IconCameraVideo,
+  IconCameraVideoFill,
+  IconCameraVideoOffFill,
   IconDisplay,
-  IconMic,
-  IconMicOff,
+  IconMicFill,
+  IconMicOffFill,
   IconPersone,
-  IconVideoOff,
 } from '@salutejs/plasma-icons';
-import { black, blackSecondary, white } from '@salutejs/plasma-tokens';
+import {
+  onLightTextPrimary as black,
+  onLightTextSecondary as blackSecondary,
+  onDarkTextPrimary as white,
+} from '@salutejs/plasma-themes/tokens';
 import styled from 'styled-components/macro';
 
 import { VideoContainer } from '../../../../shared/components/VideoContainer';
@@ -34,7 +38,6 @@ const ParticipantModeratorDropdownCustom = styled(ParticipantModeratorDropdown)`
   z-index: 100;
   right: 0;
   top: 0;
-  display: none;
 `;
 
 const UpLeftContainer = styled.div`
@@ -136,7 +139,9 @@ const Indicators = styled.div`
   justify-content: center;
 `;
 
-const SecondaryVideoContainerWrapper = styled.div`
+const SecondaryVideoContainerWrapper = styled.div<{
+  'data-is-hidden': boolean | undefined;
+}>`
   width: 68px;
   height: 68px;
   border-radius: 16px;
@@ -145,6 +150,10 @@ const SecondaryVideoContainerWrapper = styled.div`
   left: 4px;
   overflow: hidden;
   box-shadow: 0 6px 8px;
+
+  &[data-is-hidden] {
+    display: none;
+  }
 `;
 
 const Hand = styled(HandIcon)`
@@ -219,22 +228,22 @@ export const Participant = forwardRef<HTMLDivElement, ParticipantProps>(
           )}
           data-fit="cover"
         />
-        {secondary ? (
-          <SecondaryVideoContainerWrapper>
-            <VideoContainer
-              ref={secondaryVideoElement.videoRootRef}
-              data-paused={booleanAttribute(
-                secondaryVideoElement.isVideoPaused,
-              )}
-              data-is-invert={booleanAttribute(
-                secondaryVideoElement.source === 'displayScreen'
-                  ? false
-                  : isLocalParticipant,
-              )}
-              data-fit="cover"
-            />
-          </SecondaryVideoContainerWrapper>
-        ) : null}
+
+        <SecondaryVideoContainerWrapper
+          data-is-hidden={booleanAttribute(!secondary)}
+        >
+          <VideoContainer
+            ref={secondaryVideoElement.videoRootRef}
+            data-paused={booleanAttribute(secondaryVideoElement.isVideoPaused)}
+            data-is-invert={booleanAttribute(
+              secondaryVideoElement.source === 'displayScreen'
+                ? false
+                : isLocalParticipant,
+            )}
+            data-fit="cover"
+          />
+        </SecondaryVideoContainerWrapper>
+
         <ParticipantInfo
           data-is-fill={booleanAttribute(primaryVideoElement.isVideoMuted)}
         >
@@ -243,14 +252,14 @@ export const Participant = forwardRef<HTMLDivElement, ParticipantProps>(
           <Indicators>
             {isScreenShareShow && <IconDisplay color={white} />}
             {isVideoMuted ? (
-              <IconVideoOff color={white} />
+              <IconCameraVideoOffFill color={white} />
             ) : (
-              <IconCameraVideo color={white} />
+              <IconCameraVideoFill color={white} />
             )}
             {isAudioMuted ? (
-              <IconMicOff color={white} />
+              <IconMicOffFill color={white} />
             ) : (
-              <IconMic color={white} />
+              <IconMicFill color={white} />
             )}
           </Indicators>
         </ParticipantInfo>

@@ -1,5 +1,8 @@
 import { Button, Caption, Headline3, Modal } from '@salutejs/plasma-b2c';
-import { dark01, surfaceCard } from '@salutejs/plasma-tokens';
+import {
+  onDarkSurfaceSolidPrimary as dark01,
+  surfaceTransparentCard as surfaceCard,
+} from '@salutejs/plasma-themes/tokens';
 import styled from 'styled-components/macro';
 
 export const Container = styled(Modal)`

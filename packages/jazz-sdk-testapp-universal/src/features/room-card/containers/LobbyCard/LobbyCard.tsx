@@ -3,7 +3,10 @@ import { FC, useCallback, useEffect, useState } from 'react';
 import { handleEvent, JazzLobby, JazzRoom } from '@salutejs/jazz-sdk-web';
 import { Body2, Button } from '@salutejs/plasma-b2c';
 import { IconCallEnd, IconPersone } from '@salutejs/plasma-icons';
-import { buttonWarning, tertiary } from '@salutejs/plasma-tokens';
+import {
+  surfaceWarning as buttonWarning,
+  textTertiary as tertiary,
+} from '@salutejs/plasma-themes/tokens';
 import styled from 'styled-components/macro';
 
 import { useQuery } from '../../../../shared/hooks/useQuery';
@@ -35,12 +38,12 @@ const ConnectionPlaceHolder = styled.div`
   align-items: center;
   flex-direction: column;
   gap: 4px;
+`;
 
-  > ${Body2} {
-    padding: 4px;
-    background: #fff;
-    border-radius: 8px;
-  }
+const Body = styled(Body2)`
+  padding: 4px;
+  background: #fff;
+  border-radius: 8px;
 `;
 
 const Message = styled.div`
@@ -125,17 +128,17 @@ export const LobbyCard: FC<{
     <Wrapper>
       {status === 'connecting' && (
         <ConnectionPlaceHolder>
-          <Body2>connecting....</Body2>
+          <Body>connecting....</Body>
         </ConnectionPlaceHolder>
       )}
       {status === 'disconnecting' && (
         <ConnectionPlaceHolder>
-          <Body2>disconnecting....</Body2>
+          <Body>disconnecting....</Body>
         </ConnectionPlaceHolder>
       )}
       {status === 'error' && (
         <ConnectionPlaceHolder>
-          <Body2>{errorMessage}</Body2>
+          <Body>{errorMessage}</Body>
           <Button view="critical" onClick={() => room.leave()}>
             Remove
           </Button>

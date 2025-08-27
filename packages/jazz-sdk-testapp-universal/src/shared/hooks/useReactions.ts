@@ -3,7 +3,6 @@ import { useEffect, useMemo, useState } from 'react';
 import {
   getActivity,
   JazzActivity,
-  JazzActivityEventReaction,
   JazzReactionType,
   JazzRoom,
   JazzRoomParticipantId,
@@ -38,7 +37,7 @@ export function useReactions(
 
     const subscription = activity.event$
       .pipe(
-        filter((event): event is JazzActivityEventReaction => event.type === 'reaction'),
+        filter((state) => state.type === 'reaction'),
         filter(({ payload }) => payload.participantId === participantId),
         tap(({ payload }) => {
           setReaction(payload.reaction);

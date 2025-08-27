@@ -1,9 +1,10 @@
 import { FC, useCallback } from 'react';
 
 import { getLobby } from '@salutejs/jazz-sdk-web';
-import { Button, Headline3, Modal } from '@salutejs/plasma-b2c';
+import { Button, Headline3 } from '@salutejs/plasma-b2c';
 import styled from 'styled-components/macro';
 
+import { Modal } from '../../../../shared/components/Modal';
 import { useQuery } from '../../../../shared/hooks/useQuery';
 import { useRoomContext } from '../../contexts/roomContext';
 import { LobbyParticipants } from '../LobbyParticipants';
@@ -65,7 +66,7 @@ export const LobbyModal: FC<RoomModalProps> = ({ isOpen, onClose }) => {
       <Footer>
         <Button
           text="Approve all"
-          view="primary"
+          view="accent"
           disabled={isDisabled}
           onClick={handleApprove}
         />

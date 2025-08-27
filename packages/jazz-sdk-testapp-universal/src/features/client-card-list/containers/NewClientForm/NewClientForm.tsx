@@ -14,6 +14,7 @@ import styled from 'styled-components/macro';
 import { CLIENT_VALUE_KEY } from '../../../../shared/constants';
 import { useClientsContext } from '../../../../shared/contexts/clientsContext';
 import { useGlobalContext } from '../../../../shared/contexts/globalContext';
+import { useSDKContext } from '../../../../shared/contexts/sdkContext';
 import { validateURL } from '../../../../shared/utils/validateURL';
 
 const Title = styled(Body2)`
@@ -30,8 +31,9 @@ const FieldWrapper = styled.form`
 `;
 
 export const NewClientForm: FC = () => {
-  const { sdk, eventBus } = useGlobalContext();
+  const { eventBus } = useGlobalContext();
   const { clients$ } = useClientsContext();
+  const { sdk } = useSDKContext();
 
   const [host, setHost] = useState(
     sessionStorage.getItem(CLIENT_VALUE_KEY) || '',
@@ -44,19 +46,47 @@ export const NewClientForm: FC = () => {
 
   const createClient = useCallback(
     async (host: string) => {
-      if (!sdk) return;
       setStatus('pending');
       try {
         const jazzClient = await createJazzClient(sdk, {
           serverUrl: host,
           authProvider: {
-            handleUnauthorizedError: async ({ loginBySdkToken }) => {
+            handleUnauthorizedError: async ({
+              loginBySdkToken,
+              authMethod,
+              setAuthToken,
+            }) => {
               const state = await firstValueFrom(
                 clients$.pipe(map((clients) => clients.get(jazzClient))),
               );
-              if (!state || !state.sdkTokenState) {
+              if (!state) {
                 return 'fail';
               }
+
+              // Восстановление доступа с использованием jazzToken
+              if (authMethod.get() === 'token') {
+                // Просит пользователя указать новый токен
+                const token = prompt(
+                  'Jazz token is expired, please paste new token',
+                );
+                if (!token || token.length === 0) {
+                  return 'fail';
+                }
+
+                const result = await setAuthToken(token);
+
+                if (result) {
+                  return 'retry';
+                }
+
+                return 'fail';
+              }
+
+              if (!state.sdkTokenState) {
+                return 'fail';
+              }
+
+              // Восстановление доступа с использованием sdkToken
 
               const { iss, value, sub, userName } = state.sdkTokenState;
               try {
@@ -136,6 +166,7 @@ export const NewClientForm: FC = () => {
       <FieldWrapper onSubmit={handleSubmit}>
         <StyledTextField
           label="Host url"
+          view="innerLabel"
           onChange={handleChange}
           value={host}
           helperText={hostError}
@@ -145,7 +176,7 @@ export const NewClientForm: FC = () => {
           type="submit"
           disabled={isPending}
           isLoading={isPending}
-          view="primary"
+          view="accent"
         >
           Create JazzClient
         </Button>

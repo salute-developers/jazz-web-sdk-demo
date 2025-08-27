@@ -1,7 +1,7 @@
-import { forwardRef, useCallback, useMemo } from 'react';
+import { forwardRef, useMemo, useRef, useState } from 'react';
 
 import { JazzRoomParticipant } from '@salutejs/jazz-sdk-web';
-import { Button, Dropdown, DropdownNodeType } from '@salutejs/plasma-b2c';
+import { Button, Popover, useForkRef } from '@salutejs/plasma-b2c';
 import { IconMoreVertical } from '@salutejs/plasma-icons';
 import styled from 'styled-components/macro';
 
@@ -12,9 +12,11 @@ const ButtonCustom = styled(Button)`
   padding: 12px;
   height: 48px;
   color: #fff;
+  background: #fff0;
 
   &:hover {
     color: #fff;
+    background: #fff0;
   }
 `;
 
@@ -27,8 +29,14 @@ type ParticipantProps = {
 
 const ModeratorDropdown = forwardRef<HTMLButtonElement, ParticipantProps>(
   (props, ref) => {
-    const { participant, isVideoMuted, isAudioMuted } = props;
+    const { participant, isVideoMuted, isAudioMuted, ...otherProps } = props;
     const { room } = useRoomContext();
+    const [isOpen, setIsOpen] = useState(false);
+    const rootRef = useRef<HTMLButtonElement>(null);
+    const buttonRef = useForkRef(
+      ref,
+      rootRef,
+    ) as React.RefObject<HTMLButtonElement>;
 
     const userPermissions = useQuery(room.userPermissions);
 
@@ -41,11 +49,17 @@ const ModeratorDropdown = forwardRef<HTMLButtonElement, ParticipantProps>(
             label: 'Disable audio',
             value: 'turnOffAudio',
             isDisabled: isAudioMuted,
+            onClick: () => {
+              room.moderator.muteUsers(participant.id, 'audio');
+            },
           },
           {
             label: 'Disable video',
             value: 'turnOffVideo',
             isDisabled: isVideoMuted,
+            onClick: () => {
+              room.moderator.muteUsers(participant.id, 'video');
+            },
           },
         );
       }
@@ -54,49 +68,50 @@ const ModeratorDropdown = forwardRef<HTMLButtonElement, ParticipantProps>(
         items.push({
           label: 'Kick',
           value: 'kick',
+          onClick: () => {
+            room.moderator.kickUsers(participant.id);
+          },
         });
       }
       return items;
-    }, [isVideoMuted, isAudioMuted, userPermissions]);
-
-    const handleItemSelect = useCallback(
-      (value: DropdownNodeType) => {
-        if (value.value === 'turnOffAudio') {
-          room.moderator.muteUsers(participant.id, 'audio');
-
-          return;
-        }
-
-        if (value.value === 'turnOffVideo') {
-          room.moderator.muteUsers(participant.id, 'video');
-
-          return;
-        }
-
-        if (value.value === 'kick') {
-          room.moderator.kickUsers(participant.id);
-
-          return;
-        }
-      },
-      [room, participant],
-    );
+    }, [isVideoMuted, isAudioMuted, userPermissions, room, participant]);
 
     if (!items.length) {
       return null;
     }
 
     return (
-      <Dropdown
-        items={items}
-        onItemSelect={handleItemSelect}
-        placement={'left'}
-        {...props}
-      >
-        <ButtonCustom ref={ref}>
+      <div {...otherProps}>
+        <ButtonCustom
+          ref={rootRef}
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            setIsOpen((state) => !state);
+          }}
+        >
           <IconMoreVertical color="inherit" />
         </ButtonCustom>
-      </Dropdown>
+        <Popover
+          placement="left"
+          target={buttonRef}
+          opened={isOpen}
+          usePortal={true}
+          onToggle={(open) => {
+            setIsOpen(open);
+          }}
+          closeOnOverlayClick
+          closeOnEsc
+        >
+          <MenuRoot>
+            {items.map((item, i) => {
+              return (
+                <MenuItem key={item.value} {...item} autoFocus={i === 0} />
+              );
+            })}
+          </MenuRoot>
+        </Popover>
+      </div>
     );
   },
 );
@@ -124,3 +139,33 @@ export const ParticipantModeratorDropdown = forwardRef<
 
   return <ModeratorDropdown ref={ref} {...props} />;
 });
+
+const MenuRoot = styled.div`
+  padding: 4px;
+  background: #fff;
+  border-radius: 16px;
+  max-width: 180px;
+`;
+
+const RootButton = styled(Button)``;
+
+type DropdownNodeType = {
+  onClick: () => void;
+  value: string;
+  label: string;
+  isDisabled?: boolean;
+};
+
+const MenuItem = (item: DropdownNodeType & { autoFocus?: boolean }) => {
+  return (
+    <RootButton
+      view="clear"
+      stretch={true}
+      onClick={item.onClick}
+      disabled={item.isDisabled}
+      autoFocus={item.autoFocus}
+    >
+      {item.label}
+    </RootButton>
+  );
+};

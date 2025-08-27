@@ -42,7 +42,9 @@ const SELECT_ITEMS: DropdownItemProps[] = [
   },
 ];
 
-function getActiveState(pausedTypes: VideoElementPoolSettingsPausedSources): ViewState {
+function getActiveState(
+  pausedTypes: VideoElementPoolSettingsPausedSources,
+): ViewState {
   if (pausedTypes.displayScreen && pausedTypes.video) {
     return 'allPause';
   } else if (pausedTypes.displayScreen) {
@@ -109,14 +111,7 @@ export const ViewVideo: FC = () => {
   return (
     <div>
       <Title>View video</Title>
-      <Select
-        value={state}
-        items={SELECT_ITEMS}
-        onChange={handleChange}
-        placeholder={undefined}
-        onPointerEnterCapture={undefined}
-        onPointerLeaveCapture={undefined}
-      />
+      <Select value={state} items={SELECT_ITEMS} onChange={handleChange} />
     </div>
   );
 };
