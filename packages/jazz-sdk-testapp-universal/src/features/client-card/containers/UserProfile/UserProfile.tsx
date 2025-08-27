@@ -1,24 +1,15 @@
 import { FC, useCallback, useEffect, useState } from 'react';
 
-import {
-  createSdkToken,
-  handleEvent,
-  JazzClient,
-} from '@salutejs/jazz-sdk-web';
-import {
-  Button,
-  Headline3,
-  Modal,
-  TextArea,
-  TextField,
-} from '@salutejs/plasma-b2c';
+import { handleEvent, JazzClient } from '@salutejs/jazz-sdk-web';
+import { Button, Headline3, TextField } from '@salutejs/plasma-b2c';
 import { IconPersone } from '@salutejs/plasma-icons';
 import styled from 'styled-components/macro';
 
-import { JAZZ_VALUE } from '../../../../shared/constants';
-import { useClientsContext } from '../../../../shared/contexts/clientsContext';
+import { Modal } from '../../../../shared/components/Modal';
 import { useGlobalContext } from '../../../../shared/contexts/globalContext';
 import { useQuery } from '../../../../shared/hooks/useQuery';
+
+import { AuthModal } from './AuthModal';
 
 export type UserProfileProps = {
   client: JazzClient;
@@ -30,16 +21,8 @@ type ModalProps = {
   client: JazzClient;
 };
 
-const CustomTextField = styled(TextField)`
-  margin-top: 16px;
-`;
-
 const ModalTitle = styled(Headline3)`
   margin-bottom: 16px;
-`;
-
-const StyledModal = styled(Modal)`
-  width: 600px;
 `;
 
 const ModalActions = styled.div`
@@ -83,13 +66,14 @@ export const UserProfile: FC<UserProfileProps> = ({ client }) => {
   return (
     <>
       {!isAuthorised && (
-        <Button view="primary" onClick={() => setIsOpenAuthModal(true)}>
+        <Button view="accent" onClick={() => setIsOpenAuthModal(true)}>
           Sign in
         </Button>
       )}
 
       {isAuthorised && (
         <Button
+          view="secondary"
           pin="circle-circle"
           contentLeft={<IconPersone />}
           onClick={() => setIsOpenProfileModal(true)}
@@ -102,92 +86,12 @@ export const UserProfile: FC<UserProfileProps> = ({ client }) => {
         client={client}
       />
 
-      <ModalAuth
+      <AuthModal
         isOpen={isOpenAuthModal}
         onClose={() => setIsOpenAuthModal(false)}
         client={client}
       />
     </>
-  );
-};
-
-const ModalAuth: FC<ModalProps> = ({ isOpen, onClose, client }) => {
-  const { eventBus } = useGlobalContext();
-  const { loginBySdkToken } = useClientsContext();
-
-  const [value, setValue] = useState(() => {
-    return sessionStorage.getItem(JAZZ_VALUE) || '';
-  });
-
-  const [userName, setUserName] = useState('');
-
-  const handleClose = useCallback(() => {
-    onClose();
-  }, [onClose]);
-
-  const handleLoginBySdkToken = useCallback(() => {
-    const newUserName = userName || 'MyUserName';
-    const sub = newUserName.replace(' ', '_');
-    const iss = 'JazzTestApp';
-
-    createSdkToken(value, {
-      iss,
-      userName: newUserName,
-      sub,
-    })
-      .then(async ({ sdkToken }) => {
-        const success = await client.auth.loginBySdkToken(sdkToken);
-        if (!success) {
-          eventBus({
-            type: 'error',
-            payload: { title: 'Error login by SDK Secret' },
-          });
-          return;
-        }
-
-        loginBySdkToken(client, { iss, sub, userName, value });
-
-        sessionStorage.setItem(JAZZ_VALUE, value);
-
-        handleClose();
-      })
-      .catch((error) => {
-        console.error(error);
-        eventBus({
-          type: 'error',
-          payload: { title: 'Error login by SDK Secret' },
-        });
-      });
-  }, [client, value, handleClose, userName, eventBus, loginBySdkToken]);
-
-  return (
-    <StyledModal isOpen={isOpen} onClose={handleClose}>
-      <ModalTitle>Auth by SDK Secret</ModalTitle>
-
-      <TextArea
-        leftHelper="write SDK secret"
-        value={value}
-        onChange={(event) => setValue(event.target.value)}
-      />
-
-      <CustomTextField
-        caption="Your name"
-        helperText='Or will be default is "MyUserName"'
-        view="innerLabel"
-        value={userName}
-        onChange={(event) => setUserName(event.target.value)}
-      />
-
-      <ModalActions>
-        <Button
-          view="primary"
-          disabled={!value}
-          onClick={handleLoginBySdkToken}
-        >
-          Sign in
-        </Button>
-      </ModalActions>
-    </StyledModal>
   );
 };
 

@@ -1,19 +1,19 @@
-import { useEffect, useState } from 'react';
+import { FC, useEffect, useState } from 'react';
 
 import { handleEvent, JazzClient } from '@salutejs/jazz-sdk-web';
 import uniqueId from 'lodash/uniqueId';
 
 import { useClientsContext } from '../../shared/contexts/clientsContext';
-import { useGlobalContext } from '../../shared/contexts/globalContext';
-import { ClientCardListComponent } from '../../shared/types/clientCardList';
+import { useSDKContext } from '../../shared/contexts/sdkContext';
 
 import { NewClientForm } from './containers/NewClientForm';
+import { ClientCardListProps } from './types';
 
-export const ClientCardList: ClientCardListComponent = ({
+export const ClientCardList: FC<ClientCardListProps> = ({
   clientCardComponent: ClientCard,
 }) => {
-  const { sdk, eventBus } = useGlobalContext();
   const { addClient, removeClient } = useClientsContext();
+  const { sdk } = useSDKContext();
 
   const [clients, setClients] = useState<{ key: string; client: JazzClient }[]>(
     [],
@@ -46,7 +46,7 @@ export const ClientCardList: ClientCardListComponent = ({
       unsubscribeAddClient();
       unsubscribeRemoveClient();
     };
-  }, [sdk, eventBus, removeClient, addClient]);
+  }, [sdk, removeClient, addClient]);
 
   return (
     <div>

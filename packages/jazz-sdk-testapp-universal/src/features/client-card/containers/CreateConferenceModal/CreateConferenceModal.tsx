@@ -7,20 +7,19 @@ import {
 } from 'react';
 
 import { JazzClient } from '@salutejs/jazz-sdk-web';
-import {
-  Button,
-  Checkbox,
-  Headline3,
-  Modal,
-  TextField,
-} from '@salutejs/plasma-b2c';
+import { Button, Checkbox, Headline3, TextField } from '@salutejs/plasma-b2c';
 import styled from 'styled-components/macro';
 
+import { Modal } from '../../../../shared/components/Modal';
 import { useQuery } from '../../../../shared/hooks/useQuery';
 import {
   validateConferenceForm,
   ValidateReport,
 } from '../../../../shared/utils/conferenceValidations';
+
+const CustomModal = styled(Modal)`
+  width: 400px;
+`;
 
 const StyledForm = styled.form`
   display: flex;
@@ -35,6 +34,7 @@ export type CreateConferenceForm = {
   isLobbyEnabled: boolean;
   isGuestEnabled: boolean;
   jazzNextOnly: boolean;
+  userName: string;
 };
 
 type CreateConferenceModalProps = {
@@ -50,7 +50,8 @@ function getInitialFormState(): CreateConferenceForm {
     connectToConference: true,
     isLobbyEnabled: false,
     isGuestEnabled: true,
-    jazzNextOnly: false,
+    jazzNextOnly: true,
+    userName: '',
   };
 }
 
@@ -61,9 +62,9 @@ export const CreateConferenceModal: FC<CreateConferenceModalProps> = ({
   onCreate,
 }) => {
   return (
-    <Modal isOpen={isOpen} onClose={onClose}>
+    <CustomModal isOpen={isOpen} onClose={onClose}>
       <Content client={client} onCreate={onCreate} />
-    </Modal>
+    </CustomModal>
   );
 };
 
@@ -76,6 +77,8 @@ const Content: FC<{
   const [errors, setErrors] = useState<ValidateReport>({});
 
   const userInfo = useQuery(client.auth.userInfo);
+
+  const isAuthorised = useQuery(client.auth.isAuthorised);
 
   const handleChangeField = useCallback(
     (
@@ -129,9 +132,13 @@ const Content: FC<{
     (event) => {
       event.preventDefault();
 
-      const errors = validateConferenceForm({
-        conferenceName: form.conferenceName,
-      });
+      const errors = validateConferenceForm(
+        {
+          conferenceName: form.conferenceName,
+          userName: form.userName,
+        },
+        ['userName'],
+      );
 
       if (Object.keys(errors).length) {
         setErrors(errors);
@@ -149,41 +156,57 @@ const Content: FC<{
       <StyledForm onSubmit={handleSubmit}>
         <TextField
           value={form.conferenceName}
-          caption="Conference name"
+          caption="Meeting name"
           onChange={(event) => handleChangeField(event, 'conferenceName')}
           helperText={errors.conferenceName}
           status={errors.conferenceName ? 'error' : undefined}
         />
-        {form.connectToConference && (
-          <TextField
-            value={userInfo?.name}
-            caption="Username"
-            disabled
-            label="User name"
-          />
-        )}
+        {form.connectToConference &&
+          (isAuthorised ? (
+            <TextField
+              value={userInfo?.name}
+              label="User name"
+              view="innerLabel"
+              readOnly
+              helperText={errors.userName}
+              status={errors.userName ? 'error' : undefined}
+            />
+          ) : (
+            <TextField
+              value={form.userName}
+              label="User name"
+              view="innerLabel"
+              onChange={(event) => handleChangeField(event, 'userName')}
+              helperText={errors.userName}
+              status={errors.userName ? 'error' : undefined}
+            />
+          ))}
         <Checkbox
-          label="Connect to conference"
+          label="Connect to meeting"
           checked={form.connectToConference}
           onChange={handleChangeConnectToConference}
         />
+        {isAuthorised && (
+          <>
+            <Checkbox
+              label="Enable guest"
+              checked={form.isGuestEnabled}
+              onChange={handleEnableGuest}
+            />
+            <Checkbox
+              label="Enable lobby"
+              checked={form.isLobbyEnabled}
+              onChange={handleEnableLobby}
+            />
+          </>
+        )}
         <Checkbox
-          label="Enable guest"
-          checked={form.isGuestEnabled}
-          onChange={handleEnableGuest}
-        />
-        <Checkbox
-          label="Enable lobby"
-          checked={form.isLobbyEnabled}
-          onChange={handleEnableLobby}
-        />
-        <Checkbox
-          label="JazzNext conference"
+          label="JazzNext meeting"
           checked={form.jazzNextOnly}
           onChange={handleChangeIsJazzNext}
         />
-        <Button type="submit" view="primary">
-          Create conference
+        <Button type="submit" view="accent">
+          Create meeting
         </Button>
       </StyledForm>
     </>

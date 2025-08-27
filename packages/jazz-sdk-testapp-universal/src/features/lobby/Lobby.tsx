@@ -1,24 +1,31 @@
-import { FC, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { FC, useCallback, useEffect, useRef, useState } from 'react';
 
 import {
   getLocalDevices,
   handleEvent,
   ScreenShareUserCanceledError,
 } from '@salutejs/jazz-sdk-web';
-import { getAudioOutputMixer } from '@salutejs/jazz-sdk-web-plugins';
+import {
+  getAudioOutputMixer,
+  getVideoEffectsService,
+} from '@salutejs/jazz-sdk-web-plugins';
 import { Body2, Button } from '@salutejs/plasma-b2c';
 import {
-  IconCameraVideo,
+  IconCameraVideoFill,
+  IconCameraVideoOffFill,
   IconDevice,
   IconDisplay,
-  IconMic,
-  IconMicOff,
-  IconVideoOff,
+  IconMicFill,
+  IconMicOffFill,
 } from '@salutejs/plasma-icons';
-import { dark01, white } from '@salutejs/plasma-tokens';
+import {
+  onDarkSurfaceSolidPrimary as dark01,
+  onDarkTextPrimary as white,
+} from '@salutejs/plasma-themes/tokens';
 import styled from 'styled-components/macro';
 
 import { useGlobalContext } from '../../shared/contexts/globalContext';
+import { useSDKContext } from '../../shared/contexts/sdkContext';
 
 const Title = styled(Body2)`
   margin-bottom: 16px;
@@ -96,13 +103,15 @@ const IconWrapper = styled.div`
 const IconCamera: FC<{ isMuted: boolean }> = ({ isMuted }) => {
   return (
     <IconWrapper>
-      {isMuted ? <IconVideoOff /> : <IconCameraVideo />}
+      {isMuted ? <IconCameraVideoOffFill /> : <IconCameraVideoFill />}
     </IconWrapper>
   );
 };
 
 const IconAudio: FC<{ isMuted: boolean }> = ({ isMuted }) => {
-  return <IconWrapper>{isMuted ? <IconMicOff /> : <IconMic />}</IconWrapper>;
+  return (
+    <IconWrapper>{isMuted ? <IconMicOffFill /> : <IconMicFill />}</IconWrapper>
+  );
 };
 
 const IconDisplayScreen: FC<{ isMuted: boolean }> = ({ isMuted }) => {
@@ -114,7 +123,8 @@ const IconDisplayScreen: FC<{ isMuted: boolean }> = ({ isMuted }) => {
 type Status = 'idle' | 'success' | 'error' | 'pending';
 
 export const Lobby: FC = () => {
-  const { sdk, eventBus } = useGlobalContext();
+  const { eventBus } = useGlobalContext();
+  const { sdk } = useSDKContext();
 
   const [videoStream, setVideoStream] = useState<MediaStream | undefined>();
   const [audioStream, setAudioStream] = useState<MediaStream | undefined>();
@@ -132,22 +142,16 @@ export const Lobby: FC = () => {
 
   const videoElementRef = useRef<HTMLVideoElement>(null);
 
-  const localDevices = useMemo(() => {
-    if (!sdk) return undefined;
+  const localDevices = getLocalDevices(sdk);
 
-    return getLocalDevices(sdk);
-  }, [sdk]);
+  const videoEffectService = getVideoEffectsService(sdk);
 
-  const audioOutputMixer = useMemo(() => {
-    if (!sdk) return undefined;
-
-    return getAudioOutputMixer(sdk);
-  }, [sdk]);
+  const audioOutputMixer = getAudioOutputMixer(sdk);
 
   const cancelFn = useRef(() => {});
   cancelFn.current = () => {
     if (audioStream) {
-      audioOutputMixer?.removeMediaStream(audioStream);
+      audioOutputMixer.removeMediaStream(audioStream);
     }
   };
 
@@ -177,8 +181,6 @@ export const Lobby: FC = () => {
   }, [displayVideoElementRef, displayStream, isMutedDisplay]);
 
   useEffect(() => {
-    if (!localDevices) return;
-
     const unsubscribeMuteChange = handleEvent(
       localDevices.event$,
       'muteTrackChanged',
@@ -216,10 +218,6 @@ export const Lobby: FC = () => {
   }, [localDevices, displayStream, eventBus]);
 
   const toggleCamera = useCallback(async () => {
-    if (!localDevices) {
-      return;
-    }
-
     setCameraStatus('pending');
 
     if (isMutedCamera) {
@@ -227,6 +225,7 @@ export const Lobby: FC = () => {
         .getSelectedVideoInputStream({ isMuted: false })
         .then((video) => {
           setVideoStream(video);
+          videoEffectService.setMediaStream(video);
           setCameraStatus('success');
           setIsMutedCamera(!isMutedCamera);
         })
@@ -239,6 +238,7 @@ export const Lobby: FC = () => {
           .releaseMediaStream(videoStream)
           .then(() => {
             setCameraStatus('success');
+            videoEffectService.setMediaStream(undefined);
             setIsMutedCamera(!isMutedCamera);
           })
           .catch(() => {
@@ -246,19 +246,16 @@ export const Lobby: FC = () => {
           });
       }
     }
-  }, [localDevices, videoStream, isMutedCamera]);
+  }, [localDevices, isMutedCamera, videoEffectService, videoStream]);
 
   const toggleAudio = useCallback(async () => {
-    if (!localDevices) {
-      return;
-    }
     setAudioStatus('pending');
 
     if (isMutedAudio) {
       localDevices
         .getSelectedAudioInputStream({ isMuted: false })
         .then((audio) => {
-          audioOutputMixer?.addMediaStream(audio);
+          audioOutputMixer.addMediaStream(audio);
           setAudioStream(audio);
           setAudioStatus('success');
           setIsMutedAudio(!isMutedAudio);
@@ -268,7 +265,7 @@ export const Lobby: FC = () => {
         });
     } else {
       if (audioStream) {
-        audioOutputMixer?.removeMediaStream(audioStream);
+        audioOutputMixer.removeMediaStream(audioStream);
 
         localDevices
           .releaseMediaStream(audioStream)
@@ -284,15 +281,13 @@ export const Lobby: FC = () => {
   }, [localDevices, audioStream, isMutedAudio, audioOutputMixer]);
 
   const toggleDesktop = useCallback(() => {
-    if (!localDevices) return;
-
     setDisplayStatus('pending');
 
     if (isMutedDisplay) {
       localDevices
         .getDisplayInputStream()
         .then((stream) => {
-          audioOutputMixer?.addMediaStream(stream);
+          audioOutputMixer.addMediaStream(stream);
 
           setDisplayStream(stream);
           setIsMutedDisplay(!isMutedDisplay);
@@ -307,7 +302,7 @@ export const Lobby: FC = () => {
         });
     } else {
       if (displayStream) {
-        audioOutputMixer?.removeMediaStream(displayStream);
+        audioOutputMixer.removeMediaStream(displayStream);
 
         localDevices
           .releaseMediaStream(displayStream)
@@ -350,15 +345,27 @@ export const Lobby: FC = () => {
         ) : null}
       </WrapperVideo>
       <Actions>
-        <Button isLoading={cameraStatus === 'pending'} onClick={toggleCamera}>
+        <Button
+          view="secondary"
+          isLoading={cameraStatus === 'pending'}
+          onClick={toggleCamera}
+        >
           <IconCamera isMuted={isMutedCamera} />
           Toggle camera
         </Button>
-        <Button isLoading={displayStatus === 'pending'} onClick={toggleDesktop}>
+        <Button
+          view="secondary"
+          isLoading={displayStatus === 'pending'}
+          onClick={toggleDesktop}
+        >
           <IconDisplayScreen isMuted={isMutedDisplay} />
           Toggle display
         </Button>
-        <Button isLoading={audioStatus === 'pending'} onClick={toggleAudio}>
+        <Button
+          view="secondary"
+          isLoading={audioStatus === 'pending'}
+          onClick={toggleAudio}
+        >
           <IconAudio isMuted={isMutedAudio} />
           Toggle audio
         </Button>

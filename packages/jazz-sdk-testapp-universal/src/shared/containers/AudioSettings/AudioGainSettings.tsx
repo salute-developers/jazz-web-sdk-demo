@@ -1,4 +1,4 @@
-import { FC, useCallback, useEffect, useMemo, useState } from 'react';
+import { FC, useCallback, useEffect, useState } from 'react';
 
 import { handleEvent } from '@salutejs/jazz-sdk-web';
 import {
@@ -11,26 +11,20 @@ import { Body2, TextField } from '@salutejs/plasma-b2c';
 import styled from 'styled-components/macro';
 
 import { AUDIO_GAIN_KEY } from '../../constants';
-import { useGlobalContext } from '../../contexts/globalContext';
+import { useSDKContext } from '../../contexts/sdkContext';
 
 const Title = styled(Body2)`
   margin-bottom: 16px;
 `;
 
 export const AudioGainSettings: FC = () => {
-  const { sdk } = useGlobalContext();
+  const { sdk } = useSDKContext();
 
-  const audioOutputMixer = useMemo(() => {
-    if (!sdk) return undefined;
-
-    return getAudioOutputMixer(sdk);
-  }, [sdk]);
+  const audioOutputMixer = getAudioOutputMixer(sdk);
 
   const [outputGain, setOutputGain] = useState<number>(AUDIO_GAIN_DEFAULT);
 
   useEffect(() => {
-    if (!audioOutputMixer) return;
-
     const initOutputGain = audioOutputMixer.outputGain.get();
     const storageOutputGain = Number(localStorage.getItem(AUDIO_GAIN_KEY));
 
@@ -57,8 +51,6 @@ export const AudioGainSettings: FC = () => {
 
   const handleChangeGain = useCallback(
     (value: string) => {
-      if (!audioOutputMixer) return;
-
       audioOutputMixer.setOutputGain(Number(value) || 0);
     },
     [audioOutputMixer],

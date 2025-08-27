@@ -2,10 +2,10 @@ import { FC, useEffect, useMemo, useRef, useState } from 'react';
 
 import {
   getActivity,
-  handleEvent,
   JazzParticipantReaction,
   JazzRoom,
 } from '@salutejs/jazz-sdk-web';
+import { delay, filter, tap } from 'rxjs';
 import styled, { keyframes } from 'styled-components/macro';
 
 import { Reaction } from '../../../../shared/components/Reaction';
@@ -70,43 +70,39 @@ export function useReactions(room: JazzRoom): {
   useEffect(() => {
     let nextIndex = 0;
 
-    const unsubscribeReaction = handleEvent(
-      activity.event$,
-      'reaction',
-      ({ payload }) => {
-        if (stateRef.current.length === 0) {
-          nextIndex = 0;
-        }
+    const subscription = activity.event$
+      .pipe(
+        filter((state) => state.type === 'reaction'),
+        tap(({ payload }) => {
+          if (stateRef.current.length === 0) {
+            nextIndex = 0;
+          }
 
-        const newEntry = { ...payload, index: nextIndex };
-        nextIndex += 1;
+          const newEntry = { ...payload, index: nextIndex };
+          nextIndex += 1;
 
-        setState((prevState) => [...prevState, newEntry]);
-      },
-    );
+          setState((prevState) => [...prevState, newEntry]);
+        }),
+        delay(REACTION_EXPIRATION_INTERVAL),
+        tap(() => {
+          const expirationDate = Date.now() - REACTION_EXPIRATION_INTERVAL;
 
-    const unsubscribeReleaseReaction = handleEvent(
-      activity.event$,
-      'reaction',
-      () => {
-        const expirationDate = Date.now() - REACTION_EXPIRATION_INTERVAL;
-
-        const prevItems = stateRef.current;
-        const nextItems = prevItems.filter(
-          (item) => item.timestamp >= expirationDate,
-        );
-        if (nextItems.length !== prevItems.length) {
-          setState(nextItems);
-        }
-        if (nextItems.length === 0) {
-          nextIndex = 0;
-        }
-      },
-    );
+          const prevItems = stateRef.current;
+          const nextItems = prevItems.filter(
+            (item) => item.timestamp >= expirationDate,
+          );
+          if (nextItems.length !== prevItems.length) {
+            setState(nextItems);
+          }
+          if (nextItems.length === 0) {
+            nextIndex = 0;
+          }
+        }),
+      )
+      .subscribe();
 
     return () => {
-      unsubscribeReaction();
-      unsubscribeReleaseReaction();
+      subscription.unsubscribe();
     };
   }, [room, activity]);
 

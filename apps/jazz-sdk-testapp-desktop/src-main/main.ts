@@ -1,4 +1,7 @@
-import { createJazzSdkElectronMain } from '@salutejs/jazz-sdk-electron/main';
+import {
+  createJazzSdkElectronMain,
+  getPreinitElectronFlags,
+} from '@salutejs/jazz-sdk-electron/main';
 import {
   desktopCapturerPlugin,
   logsPlugin,
@@ -14,6 +17,14 @@ import { parseUrl } from './utils/parseUrl';
 import { showWindow } from './utils/showWindow';
 
 const devUrl = 'http://localhost:3000';
+
+getPreinitElectronFlags().forEach(({ setting, value }) => {
+  if (value) {
+    app.commandLine.appendSwitch(setting, value);
+  } else {
+    app.commandLine.appendSwitch(setting);
+  }
+});
 
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.

@@ -1,9 +1,10 @@
-import { RoomCardComponent } from '../../shared/types/roomCard';
+import { FC } from 'react';
 
 import { RoomCard as InnerComponent } from './containers/RoomCard';
+import { RoomCardProps } from './containers/RoomCard/types';
 import { RoomContextProvider } from './contexts/roomContext';
 
-export const RoomCard: RoomCardComponent = (props) => {
+export const RoomCard: FC<RoomCardProps> = (props) => {
   return (
     <RoomContextProvider room={props.room}>
       <InnerComponent {...props} />

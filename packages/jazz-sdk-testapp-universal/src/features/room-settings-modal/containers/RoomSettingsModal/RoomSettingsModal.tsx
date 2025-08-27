@@ -1,8 +1,9 @@
 import { FC, useCallback, useEffect, useState } from 'react';
 
-import { Headline3, Modal } from '@salutejs/plasma-b2c';
+import { Headline3 } from '@salutejs/plasma-b2c';
 import styled from 'styled-components/macro';
 
+import { Modal } from '../../../../shared/components/Modal';
 import { AudioGainSettings } from '../../../../shared/containers/AudioSettings';
 import { MediaSettings } from '../../../../shared/containers/MediaSettings';
 import { useGlobalContext } from '../../../../shared/contexts/globalContext';

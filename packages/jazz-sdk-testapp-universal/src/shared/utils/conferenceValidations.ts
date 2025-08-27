@@ -54,8 +54,12 @@ const validates: Record<string, ValidateFunction> = {
 
 export function validateConferenceForm(
   form: ValidateConferenceForm,
+  ignoreFields: (keyof ValidateConferenceForm)[] = [],
 ): ValidateReport {
   return Object.entries(form).reduce<ValidateReport>((calc, [field, value]) => {
+    if (ignoreFields.includes(field as keyof ValidateConferenceForm)) {
+      return calc;
+    }
     if (validates[field] && value !== undefined) {
       const result = validates[field](value);
 

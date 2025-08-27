@@ -1,9 +1,10 @@
 import { FC, useCallback, useEffect, useState } from 'react';
 
 import { handleEvent } from '@salutejs/jazz-sdk-web';
-import { BodyL, Button, Headline3, Modal } from '@salutejs/plasma-b2c';
+import { BodyL, Button, Headline3 } from '@salutejs/plasma-b2c';
 import styled from 'styled-components/macro';
 
+import { Modal } from '../../shared/components/Modal';
 import {
   ErrorEvent,
   useGlobalContext,
@@ -45,7 +46,7 @@ export const ErrorModal: FC = () => {
       <StyledHeader>Oops! An error has occurred!</StyledHeader>
       <BodyL>{error?.title}</BodyL>
       <Actions>
-        <Button onClick={handleClose} view="primary">
+        <Button onClick={handleClose} view="accent">
           OK
         </Button>
       </Actions>

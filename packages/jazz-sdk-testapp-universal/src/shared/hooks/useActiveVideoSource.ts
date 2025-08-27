@@ -78,9 +78,32 @@ export function useVideoSources(
       },
     );
 
+    const remoteTrackInfoUnsubscribe = handleEvent(
+      room.event$,
+      'remoteTrackInfo',
+      ({ payload }) => {
+        if (payload.participantId !== participantId) return;
+
+        if (
+          payload.mediaType === 'displayScreen' ||
+          payload.mediaType === 'video'
+        ) {
+          const displayScreenSource = room.getParticipantSource(
+            participantId,
+            'displayScreen',
+          );
+
+          const videoSource = room.getParticipantSource(participantId, 'video');
+
+          setState(getVideoSources(videoSource, displayScreenSource));
+        }
+      },
+    );
+
     return () => {
       addTrackUnsubscribe();
       muteChangeUnsubscribe();
+      remoteTrackInfoUnsubscribe();
     };
   }, [room, participantId]);
 

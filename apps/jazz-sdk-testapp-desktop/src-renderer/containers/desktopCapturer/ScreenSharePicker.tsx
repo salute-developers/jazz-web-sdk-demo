@@ -140,7 +140,7 @@ const Content: FC<{
             Cancel
           </Action>
           <Action
-            view="primary"
+            view="accent"
             size="s"
             onClick={handleSubmit}
             disabled={!selectedSource}

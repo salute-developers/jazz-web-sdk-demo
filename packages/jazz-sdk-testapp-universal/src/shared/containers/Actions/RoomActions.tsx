@@ -4,14 +4,14 @@ import { JazzRoom, ScreenShareUserCanceledError } from '@salutejs/jazz-sdk-web';
 import { Button } from '@salutejs/plasma-b2c';
 import {
   IconCallEnd,
-  IconCameraVideo,
+  IconCameraVideoFill,
+  IconCameraVideoOffFill,
   IconDevice,
   IconDisplay,
-  IconMic,
-  IconMicOff,
-  IconVideoOff,
+  IconMicFill,
+  IconMicOffFill,
 } from '@salutejs/plasma-icons';
-import { white } from '@salutejs/plasma-tokens';
+import { onDarkTextPrimary as white } from '@salutejs/plasma-themes/tokens';
 import styled from 'styled-components/macro';
 
 import { useGlobalContext } from '../../contexts/globalContext';
@@ -80,23 +80,25 @@ export const RoomActions: FC<{ room: JazzRoom; isShowRaiseHand?: boolean }> = ({
     <>
       {isShowRaiseHand && (
         <Button
-          contentLeft={<Hand data-is-active={isRaisedHand || undefined} />}
           pin="circle-circle"
           view={isRaisedHand ? 'primary' : 'secondary'}
           aria-label="raise hand"
           title="raise hand"
           onClick={handleRaiseHand}
-        />
+        >
+          <Hand data-is-active={isRaisedHand || undefined} />
+        </Button>
       )}
       <RequestPermissionVideo isVideoMuted={isVideoMuted} room={room} />
       <Button
-        contentLeft={<IconCallEndCustom color="inherit" />}
         view="critical"
         pin="circle-circle"
         aria-label="leave"
         title="leave"
         onClick={handleLeave}
-      />
+      >
+        <IconCallEndCustom color="inherit" />
+      </Button>
       <RequestPermissionAudio isAudioMuted={isAudioMuted} room={room} />
       <RequestPermissionDisplay isDisplayMuted={isDisplayMuted} room={room} />
     </>
@@ -160,14 +162,16 @@ const RequestPermissionDisplay: FC<{
   return (
     <RequestPermissionPopover>
       <Button
-        contentLeft={isDisplayMuted ? <IconDisplay /> : <IconDevice />}
+        view="secondary"
         pin="circle-circle"
         disabled={isDisabled}
         isLoading={isLoading}
         aria-label="Toggle screen capture"
         title="Toggle screen capture"
         onClick={handleToggleShare}
-      />
+      >
+        {isDisplayMuted ? <IconDisplay /> : <IconDevice />}
+      </Button>
       {isActiveRequestPermission && (
         <RequestPermissionPopoverContent>
           <Button
@@ -182,7 +186,7 @@ const RequestPermissionDisplay: FC<{
                 ? `Retry request after: ${timeValue}`
                 : 'Request permission'
             }
-            view="primary"
+            view="accent"
             onClick={handleRequestPermissionMedia}
           />
         </RequestPermissionPopoverContent>
@@ -243,18 +247,20 @@ const RequestPermissionAudio: FC<{
   return (
     <RequestPermissionPopover>
       <Button
-        contentLeft={isAudioMuted ? <IconMicOff /> : <IconMic />}
+        view="secondary"
         pin="circle-circle"
         aria-label="Toggle mic"
         disabled={isDisabled}
         isLoading={isLoading}
         title="Toggle mic"
         onClick={handleToggleShare}
-      />
+      >
+        {isAudioMuted ? <IconMicOffFill /> : <IconMicFill />}
+      </Button>
       {isActiveRequestPermission && (
         <RequestPermissionPopoverContent>
           <Button
-            contentLeft={<IconMic color="#fff" />}
+            contentLeft={<IconMicFill color="#fff" />}
             pin="circle-circle"
             size="s"
             aria-label="Request permission canShareAudio"
@@ -265,7 +271,7 @@ const RequestPermissionAudio: FC<{
                 ? `Retry request after: ${timeValue}`
                 : 'Request permission'
             }
-            view="primary"
+            view="accent"
             onClick={handleRequestPermissionMedia}
           />
         </RequestPermissionPopoverContent>
@@ -326,18 +332,20 @@ const RequestPermissionVideo: FC<{
   return (
     <RequestPermissionPopover>
       <Button
-        contentLeft={isVideoMuted ? <IconVideoOff /> : <IconCameraVideo />}
         pin="circle-circle"
         aria-label="Toggle camera"
+        view="secondary"
         disabled={isDisabled}
         isLoading={isLoading}
         title="Toggle camera"
         onClick={handleToggleShare}
-      />
+      >
+        {isVideoMuted ? <IconCameraVideoOffFill /> : <IconCameraVideoFill />}
+      </Button>
       {isActiveRequestPermission && (
         <RequestPermissionPopoverContent>
           <Button
-            contentLeft={<IconCameraVideo color="#fff" />}
+            contentLeft={<IconCameraVideoFill color="#fff" />}
             pin="circle-circle"
             size="s"
             aria-label="Request permission canShareCamera"
@@ -348,7 +356,7 @@ const RequestPermissionVideo: FC<{
                 ? `Retry request after: ${timeValue}`
                 : 'Request permission'
             }
-            view="primary"
+            view="accent"
             onClick={handleRequestPermissionMedia}
           />
         </RequestPermissionPopoverContent>

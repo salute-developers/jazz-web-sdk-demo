@@ -7,9 +7,10 @@ import {
 } from 'react';
 
 import { JazzClient } from '@salutejs/jazz-sdk-web';
-import { Button, Headline3, Modal, TextField } from '@salutejs/plasma-b2c';
+import { Button, Headline3, TextField } from '@salutejs/plasma-b2c';
 import styled from 'styled-components/macro';
 
+import { Modal } from '../../../../shared/components/Modal';
 import { useQuery } from '../../../../shared/hooks/useQuery';
 import {
   validateConferenceForm,
@@ -28,9 +29,17 @@ const ConferenceInfoWrapper = styled.div`
   gap: 16px;
 `;
 
+const Footer = styled.div`
+  display: grid;
+  gap: 16px;
+  grid-auto-flow: column;
+  align-items: center;
+`;
+
 export type JoinToConferenceModalForm = {
   password: string;
   roomId: string;
+  userName: string;
 };
 
 export type JoinToConferenceModalProps = {
@@ -44,6 +53,7 @@ function getInitialState(): JoinToConferenceModalForm {
   return {
     password: '',
     roomId: '',
+    userName: '',
   };
 }
 
@@ -53,11 +63,12 @@ export const JoinToConferenceModal: FC<JoinToConferenceModalProps> = ({
   client,
   onJoin,
 }) => {
-  const [form, setForm] = useState<JoinToConferenceModalForm>(
-    getInitialState(),
-  );
+  const [form, setForm] =
+    useState<JoinToConferenceModalForm>(getInitialState());
 
   const userInfo = useQuery(client.auth.userInfo);
+
+  const isAuthorised = useQuery(client.auth.isAuthorised);
 
   const [errors, setErrors] = useState<ValidateReport>({});
 
@@ -89,7 +100,10 @@ export const JoinToConferenceModal: FC<JoinToConferenceModalProps> = ({
     (event) => {
       event.preventDefault();
 
-      const errors = validateConferenceForm(form);
+      const errors = validateConferenceForm(
+        form,
+        client.auth.isAuthorised.get() ? ['userName'] : [],
+      );
 
       if (Object.keys(errors).length) {
         setErrors(errors);
@@ -100,7 +114,7 @@ export const JoinToConferenceModal: FC<JoinToConferenceModalProps> = ({
 
       handleClose();
     },
-    [handleClose, form, onJoin],
+    [handleClose, form, onJoin, client],
   );
 
   return (
@@ -108,18 +122,31 @@ export const JoinToConferenceModal: FC<JoinToConferenceModalProps> = ({
       <Headline3>Join the meeting</Headline3>
 
       <StyledForm onSubmit={handleSubmit}>
-        <TextField
-          value={userInfo?.name}
-          label="User name"
-          readOnly
-          helperText={errors.userName}
-          status={errors.userName ? 'error' : undefined}
-        />
+        {isAuthorised ? (
+          <TextField
+            value={userInfo?.name}
+            label="User name"
+            view="innerLabel"
+            readOnly
+            helperText={errors.userName}
+            status={errors.userName ? 'error' : undefined}
+          />
+        ) : (
+          <TextField
+            value={form.userName}
+            label="User name"
+            view="innerLabel"
+            onChange={(event) => handleChangeField(event, 'userName')}
+            helperText={errors.userName}
+            status={errors.userName ? 'error' : undefined}
+          />
+        )}
         <ConferenceInfoWrapper>
           <TextField
             name="conferenceId"
             value={form.roomId}
-            label="Conference id"
+            view="innerLabel"
+            label="Room id"
             onChange={(event) => handleChangeField(event, 'roomId')}
             helperText={errors.roomId}
             status={errors.roomId ? 'error' : undefined}
@@ -127,6 +154,7 @@ export const JoinToConferenceModal: FC<JoinToConferenceModalProps> = ({
           <TextField
             value={form.password}
             name="password"
+            view="innerLabel"
             label="Password"
             onChange={(event) => handleChangeField(event, 'password')}
             helperText={errors.password}
@@ -134,9 +162,11 @@ export const JoinToConferenceModal: FC<JoinToConferenceModalProps> = ({
           />
         </ConferenceInfoWrapper>
 
-        <Button type="submit" view="primary">
-          Join the meeting
-        </Button>
+        <Footer>
+          <Button type="submit" view="accent">
+            Join the meeting
+          </Button>
+        </Footer>
       </StyledForm>
     </Modal>
   );

@@ -1,10 +1,16 @@
-import { RoomDetailModalComponent } from '../../shared/types/roomDetailModal';
+import { FC } from 'react';
+
+import { JazzRoom } from '@salutejs/jazz-sdk-web';
 
 import { LobbyModalController } from './containers/LobbyModalController';
 import { RoomModal as InnerComponent } from './containers/RoomModal';
 import { RoomContextProvider } from './contexts/roomContext';
-
-export const RoomDetailModal: RoomDetailModalComponent = (props) => {
+type RoomDetailModalProps = {
+  isOpen: boolean;
+  onClose: () => void;
+  room: JazzRoom;
+};
+export const RoomDetailModal: FC<RoomDetailModalProps> = (props) => {
   return (
     <RoomContextProvider room={props.room}>
       <InnerComponent {...props} />

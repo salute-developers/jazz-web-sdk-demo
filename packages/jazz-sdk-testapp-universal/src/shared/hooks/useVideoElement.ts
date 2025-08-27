@@ -1,9 +1,6 @@
 import { RefObject, useEffect, useMemo, useRef, useState } from 'react';
 
-import {
-  JazzRoom,
-  JazzRoomParticipantId,
-} from '@salutejs/jazz-sdk-web';
+import { JazzRoom, JazzRoomParticipantId } from '@salutejs/jazz-sdk-web';
 import {
   getVideoElementPoolForRoom,
   VideoElementPoolForRoomVideoSource,

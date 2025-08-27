@@ -4,8 +4,10 @@ import {
   JazzSdkCreateAnonymousRoomDetails,
   JazzSdkCreateConferenceDetails,
 } from '@salutejs/jazz-sdk-web';
-import { Headline3, Modal, TextField } from '@salutejs/plasma-b2c';
+import { Headline3, TextField } from '@salutejs/plasma-b2c';
 import styled from 'styled-components/macro';
+
+import { Modal } from '../../../../shared/components/Modal';
 
 export type ConferenceInfoModalProps = {
   roomDetails:

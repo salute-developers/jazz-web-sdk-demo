@@ -6,8 +6,13 @@ import {
   JazzRoomParticipant,
   MediaType,
 } from '@salutejs/jazz-sdk-web';
+import { VideoElementPoolForRoomVideoSource } from '@salutejs/jazz-sdk-web-plugins';
 import { Body2, Button } from '@salutejs/plasma-b2c';
-import { blackSecondary, dark01, white } from '@salutejs/plasma-tokens';
+import {
+  onLightTextSecondary as blackSecondary,
+  onDarkSurfaceSolidPrimary as dark01,
+  onDarkTextPrimary as white,
+} from '@salutejs/plasma-themes/tokens';
 import styled from 'styled-components/macro';
 
 import { Reaction } from '../../../../shared/components/Reaction';
@@ -122,19 +127,18 @@ export const MainContent: FC = () => {
   const visibleParticipantId = participants[0]?.id;
 
   const { primary, secondary } = useVideoSources(visibleParticipantId);
-
   const primarySource: MediaType =
     primary === 'display' ? 'displayScreen' : 'video';
   const secondarySource: MediaType =
     secondary === 'display' ? 'displayScreen' : 'video';
 
   useEffect(() => {
-    if (!secondary) {
+    if (!secondarySource) {
       setSwap(false);
     }
-  }, [secondary]);
+  }, [primary, secondarySource]);
 
-  const canSwapped = Boolean(secondary);
+  const canSwapped = Boolean(secondarySource);
 
   const primaryVideoElement = useVideoElement<HTMLDivElement>({
     participantId: visibleParticipantId,
@@ -144,16 +148,6 @@ export const MainContent: FC = () => {
         ? secondarySource
         : primarySource
       : primarySource,
-  });
-
-  const secondaryVideoElement = useVideoElement<HTMLDivElement>({
-    participantId: visibleParticipantId,
-    room,
-    source: canSwapped
-      ? !isSwapped
-        ? secondarySource
-        : primarySource
-      : secondarySource,
   });
 
   const visibleParticipant = participants.find(
@@ -179,26 +173,16 @@ export const MainContent: FC = () => {
         data-fit="cover"
       />
       {secondary ? (
-        <SecondaryVideoContainerWrapper
-          onClick={() => {
-            setSwap((prevState) => !prevState);
-          }}
-        >
-          <VideoContainer
-            ref={secondaryVideoElement.videoRootRef}
-            data-paused={booleanAttribute(secondaryVideoElement.isVideoPaused)}
-            data-is-invert={booleanAttribute(
-              secondaryVideoElement.source === 'displayScreen'
-                ? false
-                : isLocalParticipant,
-            )}
-            data-is-shading={booleanAttribute(
-              secondaryVideoElement.source === 'displayScreen' &&
-                isLocalParticipant,
-            )}
-            data-fit="cover"
-          />
-        </SecondaryVideoContainerWrapper>
+        <SecondaryVideoElement
+          canSwapped={canSwapped}
+          isLocalParticipant={isLocalParticipant}
+          isSwapped={isSwapped}
+          primarySource={primarySource}
+          room={room}
+          secondarySource={secondarySource}
+          setSwap={setSwap}
+          visibleParticipantId={visibleParticipantId}
+        />
       ) : null}
       <Placeholder
         isVideoMuted={primaryVideoElement.isVideoMuted}
@@ -258,5 +242,58 @@ const Reactions: FC<{ room: JazzRoom }> = ({ room }) => {
         <Reaction reaction="surprise" />
       </ButtonCustom>
     </ReactionContainer>
+  );
+};
+
+const SecondaryVideoElement: FC<{
+  visibleParticipantId: string;
+  room: JazzRoom;
+  canSwapped: boolean;
+  isSwapped: boolean;
+  secondarySource: VideoElementPoolForRoomVideoSource;
+  primarySource: VideoElementPoolForRoomVideoSource;
+  setSwap: React.Dispatch<React.SetStateAction<boolean>>;
+  isLocalParticipant: boolean;
+}> = ({
+  visibleParticipantId,
+  room,
+  canSwapped,
+  isSwapped,
+  primarySource,
+  secondarySource,
+  setSwap,
+  isLocalParticipant,
+}) => {
+  const secondaryVideoElement = useVideoElement<HTMLDivElement>({
+    participantId: visibleParticipantId,
+    room,
+    source: canSwapped
+      ? !isSwapped
+        ? secondarySource
+        : primarySource
+      : secondarySource,
+  });
+
+  return (
+    <SecondaryVideoContainerWrapper
+      onClick={() => {
+        setSwap((prevState) => !prevState);
+      }}
+    >
+      <VideoContainer
+        ref={secondaryVideoElement.videoRootRef}
+        data-paused={booleanAttribute(secondaryVideoElement.isVideoPaused)}
+        data-is-invert={booleanAttribute(
+          secondaryVideoElement.source === 'displayScreen'
+            ? false
+            : isLocalParticipant,
+        )}
+        data-is-shading={booleanAttribute(
+          secondaryVideoElement.source === 'displayScreen' &&
+            isLocalParticipant,
+        )}
+        data-fit="cover"
+      />
+    </SecondaryVideoContainerWrapper>
   );
 };

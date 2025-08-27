@@ -3,6 +3,7 @@ import { useEffect } from 'react';
 import {
   getLocalDevices,
   handleEvent,
+  JazzSdk,
   LOCAL_MEDIA_DEVICE_KIND,
   LocalMediaDevice,
 } from '@salutejs/jazz-sdk-web';
@@ -15,14 +16,11 @@ import styled from 'styled-components/macro';
 
 import { useGlobalContext } from '../contexts/globalContext';
 
-export const useDeviceSync = (): void => {
-  const { sdk, devices } = useGlobalContext();
+export const useDeviceSync = (params: { sdk: JazzSdk }): void => {
+  const { sdk } = params;
+  const { devices } = useGlobalContext();
 
   useEffect(() => {
-    if (!sdk) {
-      return;
-    }
-
     const localDevices = getLocalDevices(sdk);
 
     const unsubscribeDevicesChanged = handleEvent(
@@ -150,7 +148,7 @@ const MediaNotification: React.FC<{
       A new {type === 'speakers' ? 'speakers have' : `${type} has`} been
       connected: {addedItem.label}{' '}
       <Container>
-        <Button view="primary" onClick={onApply}>
+        <Button view="accent" onClick={onApply}>
           Use
         </Button>
         <Button view="secondary" onClick={onCancel}>
