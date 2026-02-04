@@ -4,9 +4,16 @@ import { JazzRoom } from '@salutejs/jazz-sdk-web';
 
 import { createEventBus, EventBus } from '../../../shared/utils/createEventBus';
 
-type EventBusEvent = {
-  type: 'openLobbyModal';
-};
+type EventBusEvent =
+  | {
+      type: 'openLobbyModal';
+    }
+  | {
+      type: 'openParticipantInfoModal';
+      payload: {
+        participantId: string;
+      };
+    };
 
 export type RoomContext = {
   room: JazzRoom;

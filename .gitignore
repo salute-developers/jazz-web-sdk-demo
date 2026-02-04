@@ -23,4 +23,5 @@
 /packages/*/build
 /packages/*/dev
 /packages/*/dist
+/libs
 

@@ -1,6 +1,6 @@
 {
   "name": "jazz-sdk-testapp-universal",
-  "version": "25.63.5",
+  "version": "26.11.23",
   "description": "Jazz playground app for testing sdk features",
   "private": true,
   "scripts": {

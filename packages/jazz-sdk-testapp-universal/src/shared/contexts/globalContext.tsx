@@ -1,87 +1,43 @@
 import { createContext, FC, useContext, useEffect, useMemo } from 'react';
 
-import { JazzRoom, JazzSdk } from '@salutejs/jazz-sdk-web';
 import { createScope } from 'nrgy';
 import { Controller } from 'nrgy/mvc';
-import { Observable } from 'rxjs';
 
-import { createEventBus, EventBus } from '../utils/createEventBus';
+import { Events, GlobalContext } from '../types/globalContext';
+import { Plugin } from '../types/plugins';
+import { createEventBus } from '../utils/createEventBus';
+import { createMediaManager } from '../utils/mediaManager';
 import { createDevicesStorage } from '../utils/mediaSettingsStorage';
+import { createMenuManager } from '../utils/menuManager';
+import { pluginsInit } from '../utils/plugins';
+import { createSlotsManager } from '../utils/slotsManager';
 
 const deviceStorage = createDevicesStorage();
 
-export type ErrorEvent = {
-  type: 'error';
-  payload: {
-    title: string;
-  };
-};
-
-export type Events =
-  | ErrorEvent
-  | {
-      type: 'roomSettingsOpen';
-      payload: {
-        room: JazzRoom;
-      };
-    }
-  | {
-      type: 'roomDetailModalOpen';
-      payload: {
-        room: JazzRoom;
-      };
-    }
-  | {
-      type: 'roomInfoModalOpen';
-      payload: {
-        room: JazzRoom;
-      };
-    }
-  | {
-      type: 'setSdk';
-      payload: {
-        sdk: JazzSdk | undefined;
-      };
-    }
-  | {
-      type: 'message';
-      payload: {
-        type: string;
-        payload?: unknown;
-      };
-    };
-
-export type Feature = {
-  id: string;
-  value: string;
-  event: {
-    type: string;
-    payload?: unknown;
-  };
-};
-
-export type GlobalContext = {
-  eventBus: EventBus<Events>;
-  event$: Observable<Events>;
-  devices: {
-    getAudioInput: () => string | undefined;
-    setAudioInput: (value: string | undefined) => void;
-    getVideoInput: () => string | undefined;
-    setVideoInput: (value: string | undefined) => void;
-    getAudioOutput: () => string | undefined;
-    setAudioOutput: (value: string | undefined) => void;
-  };
-};
-
-function createGlobalContext(): Controller<GlobalContext> {
+function createGlobalContext(
+  plugins: Plugin[] | undefined,
+): Controller<GlobalContext> {
   const scope = createScope();
   const eventBus = createEventBus<Events>();
-  return {
+  const slotsManager = scope.add(createSlotsManager());
+  const menuManager = scope.add(createMenuManager());
+  const mediaManager = scope.add(createMediaManager());
+  const context: Controller<GlobalContext> = {
+    slotsManager,
+    menuManager,
+    mediaManager,
     devices: deviceStorage,
     eventBus,
     event$: eventBus.event$,
     destroy: scope.destroy,
+    scope,
   };
+
+  if (plugins) {
+    pluginsInit(plugins, context);
+  }
+
+  return context;
 }
 
 const globalContext = createContext<GlobalContext | undefined>(undefined);
@@ -96,10 +52,11 @@ export function useGlobalContext(): GlobalContext {
   return result;
 }
 
-export const GlobalContextProvider: FC<{ children: React.ReactNode }> = ({
-  children,
-}) => {
-  const context = useMemo(() => createGlobalContext(), []);
+export const GlobalContextProvider: FC<{
+  children: React.ReactNode;
+  plugins: Plugin[] | undefined;
+}> = ({ plugins, children }) => {
+  const context = useMemo(() => createGlobalContext(plugins), [plugins]);
 
   useEffect(() => {
     return () => {

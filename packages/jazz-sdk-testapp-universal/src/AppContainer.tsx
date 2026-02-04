@@ -13,23 +13,22 @@ import {
   videoElementPoolPlugin,
 } from '@salutejs/jazz-sdk-web-plugins';
 import {
-  BodyM,
+  BodyS,
   ModalsProvider,
   NotificationsProvider,
   PopupBaseProvider,
+  ToastProvider,
 } from '@salutejs/plasma-b2c';
-import {
-  surfaceSolidSecondary as surfaceSolid02,
-  textTertiary as tertiary,
-} from '@salutejs/plasma-themes/tokens';
 import styled from 'styled-components/macro';
 
 import { ErrorModal } from './features/error-modal';
 import { Lobby } from './features/lobby';
 import { VirtualBackgrounds } from './features/virtual-backgrounds';
 import { GlobalStyles } from './shared/components/GlobalStyle';
+import { Logo } from './shared/components/Logo/Logo';
 import { AudioGainSettings } from './shared/containers/AudioSettings';
 import { MediaSettings } from './shared/containers/MediaSettings';
+import { SlotArea } from './shared/containers/SlotArea';
 import { ClientsContextProvider } from './shared/contexts/clientsContext';
 import {
   GlobalContextProvider,
@@ -37,29 +36,25 @@ import {
 } from './shared/contexts/globalContext';
 import { SDKContextProvider } from './shared/contexts/sdkContext';
 import { useDeviceSync } from './shared/hooks/useDeviceSync';
+import { Plugin } from './shared/types/plugins';
 import { ClientCardListWidget } from './widgets/ClientCardListWidget';
-
-type InitSDKStatus = 'fail' | 'success' | 'process';
 
 const Root = styled.div`
   display: grid;
   gap: 24px;
 `;
 
-const SDKInfo = styled.div`
-  width: 100%;
-  background: ${surfaceSolid02};
-  padding: 4px;
-  box-sizing: border-box;
-  border-bottom: 1px solid ${tertiary};
+const Header = styled.div`
+  margin: 0 32px;
+  padding: 16px 0 0;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: baseline;
+  gap: 8px;
 `;
 
-const SDKInfoText = styled(BodyM)`
-  margin-bottom: 4px;
-
-  &:last-child {
-    margin-bottom: 0;
-  }
+const SDKInfoText = styled(BodyS)`
+  color: #7683a4;
 `;
 
 const RootContent = styled.div`
@@ -82,15 +77,9 @@ const RightContent = styled.div`
   width: 570px;
 `;
 
-const STATUS: Record<InitSDKStatus, string> = {
-  fail: '🔴',
-  process: '🟠',
-  success: '🟢',
-};
-
 const App: FC<{
   createJazzSdk: typeof createJazzSdkWeb;
-  jazzSdkPlugins: ReadonlyArray<JazzSdkPlugin>;
+  jazzSdkPlugins: ReadonlyArray<JazzSdkPlugin> | undefined;
   DesktopCapturerComponent?: FC<{ jazzSdk: JazzSdk }>;
   AdditionalVersionsComponent?: FC<{ jazzSdk: JazzSdk; InfoTextComponent: FC }>;
 }> = (props) => {
@@ -100,10 +89,8 @@ const App: FC<{
     createJazzSdk,
     AdditionalVersionsComponent,
   } = props;
-  const { eventBus, devices } = useGlobalContext();
+  const { eventBus, devices, mediaManager } = useGlobalContext();
   const [sdk, setSdk] = useState<JazzSdk | undefined>();
-
-  const [status, setStatus] = useState<InitSDKStatus>('process');
 
   useEffect(() => {
     let jazzSdk: JazzSdk | undefined;
@@ -111,8 +98,11 @@ const App: FC<{
     // create sdk
     createJazzSdk({
       clientName: 'JazzTestApp',
+      configFlags: {
+        'vcsSdk.canCreateAnonymousRoom': 'true',
+      },
       plugins: [
-        ...jazzSdkPlugins,
+        ...(jazzSdkPlugins || []),
         videoElementPoolPlugin(),
         audioOutputMixerPlugin(),
         logsPlugin({
@@ -132,36 +122,36 @@ const App: FC<{
         }
         jazzSdk = sdk;
         setSdk(sdk);
-        setStatus('success');
+        mediaManager.setSdk(sdk);
       })
       .catch((error) => {
         if (isDestroyed) {
           return;
         }
         console.error('Fail create sdk', error);
-        setStatus('fail');
         eventBus({ type: 'error', payload: { title: 'fail create sdk' } });
       });
 
     return () => {
       setSdk(undefined);
+      mediaManager.setSdk(undefined);
       jazzSdk?.destroy();
       isDestroyed = true;
     };
-  }, [setSdk, eventBus, devices, jazzSdkPlugins, createJazzSdk]);
+  }, [setSdk, eventBus, devices, jazzSdkPlugins, createJazzSdk, mediaManager]);
 
   return (
     <Root>
-      <SDKInfo>
-        <SDKInfoText>SDK version: {SDK_VERSION}</SDKInfoText>
-        <SDKInfoText>SDK status: {STATUS[status]}</SDKInfoText>
+      <Header>
+        <Logo logoText="JazzSDK" subText={SDK_VERSION} />
         {AdditionalVersionsComponent && sdk ? (
           <AdditionalVersionsComponent
             jazzSdk={sdk}
             InfoTextComponent={SDKInfoText}
           />
         ) : null}
-      </SDKInfo>
+      </Header>
+
       {sdk && (
         <SDKContextProvider sdk={sdk}>
           <Content sdk={sdk} />
@@ -188,6 +178,7 @@ const Content: FC<{ sdk: JazzSdk }> = ({ sdk }) => {
         <AudioGainSettings />
         <VirtualBackgrounds />
         <MediaSettings />
+        <SlotArea slotName="UtilityPanel" />
       </RightContent>
     </RootContent>
   );
@@ -195,31 +186,35 @@ const Content: FC<{ sdk: JazzSdk }> = ({ sdk }) => {
 
 export const AppContainer: FC<{
   createJazzSdk: typeof createJazzSdkWeb;
+  appPlugins?: Plugin[];
   jazzSdkPlugins?: ReadonlyArray<JazzSdkPlugin> | undefined;
   DesktopCapturerComponent?: FC<{ jazzSdk: JazzSdk }>;
   AdditionalVersionsComponent?: FC<{ jazzSdk: JazzSdk; InfoTextComponent: FC }>;
 }> = ({
   DesktopCapturerComponent,
-  jazzSdkPlugins = [],
+  jazzSdkPlugins,
   createJazzSdk,
   AdditionalVersionsComponent,
+  appPlugins,
 }) => {
   return (
-    <GlobalContextProvider>
+    <GlobalContextProvider plugins={appPlugins}>
       <ClientsContextProvider>
-        <PopupBaseProvider>
-          <ModalsProvider>
-            <NotificationsProvider>
-              <GlobalStyles />
-              <App
-                createJazzSdk={createJazzSdk}
-                jazzSdkPlugins={jazzSdkPlugins}
-                DesktopCapturerComponent={DesktopCapturerComponent}
-                AdditionalVersionsComponent={AdditionalVersionsComponent}
-              />
-            </NotificationsProvider>
-          </ModalsProvider>
-        </PopupBaseProvider>
+        <ToastProvider>
+          <PopupBaseProvider>
+            <ModalsProvider>
+              <NotificationsProvider>
+                <GlobalStyles />
+                <App
+                  createJazzSdk={createJazzSdk}
+                  jazzSdkPlugins={jazzSdkPlugins}
+                  DesktopCapturerComponent={DesktopCapturerComponent}
+                  AdditionalVersionsComponent={AdditionalVersionsComponent}
+                />
+              </NotificationsProvider>
+            </ModalsProvider>
+          </PopupBaseProvider>
+        </ToastProvider>
       </ClientsContextProvider>
     </GlobalContextProvider>
   );

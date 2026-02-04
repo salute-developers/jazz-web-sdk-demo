@@ -1,7 +1,7 @@
 import { useState } from 'react';
 
 import {
-  handleEvent,
+  handleQuery,
   JazzRoom,
   JazzRoomParticipantId,
 } from '@salutejs/jazz-sdk-web';
@@ -18,50 +18,15 @@ export const useAudioSource = (options: {
   const [isAudioMuted, setIsAudioMuted] = useState(true);
 
   useEnhancedEffect(() => {
-    setIsAudioMuted(
-      room.getParticipantSource(participantId, 'audio')?.isMuted ?? true,
-    );
+    if (!participantId) return;
 
-    const unsubscribeMuteChange = handleEvent(
-      room.event$,
-      'trackMuteChanged',
-      ({ payload }) => {
-        if (payload.participantId === participantId) {
-          if (payload.mediaType === 'audio') {
-            setIsAudioMuted(payload.isMuted);
-          }
-        }
-      },
-    );
+    const state = room.getParticipantMediaSource(participantId, 'audio');
 
-    const unsubscribeAddTrack = handleEvent(
-      room.event$,
-      'addTrack',
-      ({ payload }) => {
-        if (payload.participantId === participantId) {
-          if (payload.mediaType === 'audio') {
-            setIsAudioMuted(payload.isMuted);
-          }
-        }
-      },
-    );
-
-    const unsubscribeRemoveTrack = handleEvent(
-      room.event$,
-      'removeTrack',
-      ({ payload }) => {
-        if (payload.participantId === participantId) {
-          if (payload.mediaType === 'audio') {
-            setIsAudioMuted(true);
-          }
-        }
-      },
-    );
+    setIsAudioMuted(state.isMuted());
+    const unsubscribe = handleQuery(state.isMuted, setIsAudioMuted);
 
     return () => {
-      unsubscribeMuteChange();
-      unsubscribeAddTrack();
-      unsubscribeRemoveTrack();
+      unsubscribe();
     };
   }, [participantId, room]);
 

@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 
 import {
-  handleEvent,
+  handleQuery,
   JazzRoom,
   JazzRoomParticipant,
 } from '@salutejs/jazz-sdk-web';
@@ -24,67 +24,28 @@ export function useParticipantMediaMuted(
     if (!participantId) {
       return;
     }
-    setIsDisplayMuted(
-      room.getParticipantSource(participantId, 'displayScreen')?.isMuted ??
-        true,
+    const displayState = room.getParticipantMediaSource(
+      participantId,
+      'displayScreen',
     );
-    setIsAudioMuted(
-      room.getParticipantSource(participantId, 'audio')?.isMuted ?? true,
+    const audioState = room.getParticipantMediaSource(participantId, 'audio');
+    const videoState = room.getParticipantMediaSource(participantId, 'video');
+
+    setIsDisplayMuted(displayState.isMuted());
+    setIsAudioMuted(audioState.isMuted());
+    setIsVideoMuted(videoState.isMuted());
+
+    const unsubscribeDisplay = handleQuery(
+      displayState.isMuted,
+      setIsDisplayMuted,
     );
-    setIsVideoMuted(
-      room.getParticipantSource(participantId, 'video')?.isMuted ?? true,
-    );
-
-    const unsubscribeMuteChange = handleEvent(
-      room.event$,
-      'trackMuteChanged',
-      ({ payload }) => {
-        if (payload.participantId !== participantId) return;
-
-        if (payload.mediaType === 'video') {
-          setIsVideoMuted(payload.isMuted);
-        } else if (payload.mediaType === 'audio') {
-          setIsAudioMuted(payload.isMuted);
-        } else if (payload.mediaType === 'displayScreen') {
-          setIsDisplayMuted(payload.isMuted);
-        }
-      },
-    );
-
-    const unsubscribeAddTrack = handleEvent(
-      room.event$,
-      'addTrack',
-      ({ payload }) => {
-        if (payload.participantId !== participantId) return;
-
-        if (payload.mediaType === 'video') {
-          setIsVideoMuted(payload.isMuted);
-        } else if (payload.mediaType === 'displayScreen') {
-          setIsDisplayMuted(payload.isMuted);
-        } else if (payload.mediaType === 'audio') {
-          setIsAudioMuted(payload.isMuted);
-        }
-      },
-    );
-
-    const unsubscribeRemoveTrack = handleEvent(
-      room.event$,
-      'removeTrack',
-      ({ payload }) => {
-        if (payload.participantId !== participantId) return;
-
-        if (payload.mediaType === 'video') {
-          setIsVideoMuted(false);
-        } else if (payload.mediaType === 'audio') {
-          setIsAudioMuted(false);
-        }
-      },
-    );
+    const unsubscribeAudio = handleQuery(audioState.isMuted, setIsAudioMuted);
+    const unsubscribeVideo = handleQuery(videoState.isMuted, setIsVideoMuted);
 
     return () => {
-      unsubscribeAddTrack();
-      unsubscribeMuteChange();
-      unsubscribeRemoveTrack();
+      unsubscribeDisplay();
+      unsubscribeAudio();
+      unsubscribeVideo();
     };
   }, [room, participantId]);
 

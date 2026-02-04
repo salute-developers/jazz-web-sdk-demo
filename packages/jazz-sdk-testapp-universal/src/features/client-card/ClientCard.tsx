@@ -1,16 +1,12 @@
 import { FC, useCallback, useEffect, useState } from 'react';
 
 import {
-  getJazzSdk,
-  getLocalDevices,
   handleEvent,
   JazzRoom,
   JazzSdkCreateAnonymousRoomDetails,
   JazzSdkCreateConferenceDetails,
-  withAnonymousCreateRoom,
   withAnonymousJoin,
 } from '@salutejs/jazz-sdk-web';
-import { getVideoEffectsService } from '@salutejs/jazz-sdk-web-plugins';
 import { Body2, Button } from '@salutejs/plasma-b2c';
 import { IconPlus } from '@salutejs/plasma-icons';
 import {
@@ -20,6 +16,8 @@ import {
 import uniqueId from 'lodash/uniqueId';
 import styled from 'styled-components/macro';
 
+import { MenuArea } from '../../shared/containers/MenuArea';
+import { SlotArea } from '../../shared/containers/SlotArea';
 import { useGlobalContext } from '../../shared/contexts/globalContext';
 
 import { ConferenceInfoModal } from './containers/ConferenceInfoModal';
@@ -82,7 +80,7 @@ export const ClientCard: FC<ClientCardProps> = ({
   client,
   roomCardComponent: RoomCard,
 }) => {
-  const { eventBus } = useGlobalContext();
+  const { eventBus, mediaManager } = useGlobalContext();
 
   const [rooms, setRooms] = useState<{ key: string; room: JazzRoom }[]>([]);
 
@@ -96,12 +94,6 @@ export const ClientCard: FC<ClientCardProps> = ({
     | JazzSdkCreateConferenceDetails
     | undefined
   >(undefined);
-
-  const sdk = getJazzSdk(client);
-
-  const localDevices = getLocalDevices(sdk);
-
-  const videoEffectService = getVideoEffectsService(sdk);
 
   useEffect(() => {
     const unsubscribeAddRoom = handleEvent(
@@ -165,70 +157,20 @@ export const ClientCard: FC<ClientCardProps> = ({
           withAnonymousJoin({ userName: form.userName }),
       );
 
+      if (!form.muted) {
+        try {
+          await Promise.all([
+            mediaManager.mute(room, 'audio', false),
+            mediaManager.mute(room, 'video', false),
+          ]);
+        } catch (error) {
+          console.log('Create media error', error);
+        }
+      }
+
       console.log('Connecting to room', room);
-
-      const releaseMedia = () => {
-        const displayStream = room.displayStream.get();
-
-        if (displayStream) {
-          console.log('Release display mediaStream');
-
-          localDevices.releaseMediaStream(displayStream);
-        }
-      };
-
-      handleEvent(room.event$, 'destroy', releaseMedia, true);
-
-      const audioInit = async () => {
-        try {
-          const audioStream = await localDevices.getSelectedAudioInputStream();
-
-          console.log('Add audio mediaStream to room');
-
-          room.setUserAudioInput(audioStream);
-
-          const releaseMedia = () => {
-            console.log('Release audio mediaStream');
-
-            localDevices.releaseMediaStream(audioStream);
-          };
-
-          handleEvent(room.event$, 'destroy', releaseMedia, true);
-        } catch (error) {
-          console.log('Media permission for audio is denied');
-        }
-      };
-
-      const videoInit = async () => {
-        try {
-          const videoStream = await localDevices.getSelectedVideoInputStream();
-
-          console.log('Add video mediaStream to room');
-
-          room.setUserVideoInput(videoStream);
-          videoEffectService.setMediaStream(videoStream);
-
-          const releaseMedia = () => {
-            console.log('Release video mediaStream');
-
-            localDevices.releaseMediaStream(videoStream);
-          };
-
-          handleEvent(room.event$, 'destroy', releaseMedia, true);
-        } catch (error) {
-          console.log('Media permission for video is denied');
-        }
-      };
-
-      await Promise.all([audioInit(), videoInit()]);
     },
-    [
-      client,
-      localDevices,
-      handleCloseJoinToConferenceModal,
-      eventBus,
-      videoEffectService,
-    ],
+    [client, handleCloseJoinToConferenceModal, eventBus, mediaManager],
   );
 
   const handleCreateConference = useCallback(
@@ -236,28 +178,33 @@ export const ClientCard: FC<ClientCardProps> = ({
       handleCloseCreateConferenceModal();
 
       client.conferences
-        .createRoom(
-          {
-            title: form.conferenceName,
-            isLobbyEnabled: form.isLobbyEnabled,
-            isGuestEnabled: form.isGuestEnabled,
-            jazzNextOnly: form.jazzNextOnly,
-          },
-          !client.auth.isAuthorised.get() && withAnonymousCreateRoom(),
-        )
+        .createRoom({
+          title: form.conferenceName,
+          lobbyEnabled: form.isLobbyEnabled,
+          guestEnabled: form.isGuestEnabled,
+        })
         .then((data) => {
           console.log('Create conference', data);
           if (!form.connectToConference) {
-            setRoomDetails(data);
+            setRoomDetails({
+              id: data.roomId,
+              roomTitle: form.conferenceName,
+              roomType: client.auth.isAuthorised.get()
+                ? 'MEETING'
+                : 'ANONYMOUS',
+              password: data.password,
+              url: data.url,
+            });
             return;
           }
 
-          const { id, password } = data;
+          const { roomId, password } = data;
 
           handleConnectToConference({
-            roomId: id,
+            roomId,
             password,
             userName: form.userName,
+            muted: form.muted,
           });
         })
         .catch((error) => {
@@ -289,6 +236,7 @@ export const ClientCard: FC<ClientCardProps> = ({
       <TitleWrapper>
         <Body2>JazzClient: {client.serverUrl}</Body2>
         <RoomActions>
+          <MenuArea menuName="ClientFeatures" />
           <UserProfile client={client} />
           <Button view="secondary" onClick={client.destroy}>
             Remove
@@ -332,6 +280,8 @@ export const ClientCard: FC<ClientCardProps> = ({
         onClose={handleCloseJoinToConferenceModal}
         onJoin={handleConnectToConference}
       />
+
+      <SlotArea slotName="ClientPanel" />
     </Wrapper>
   );
 };

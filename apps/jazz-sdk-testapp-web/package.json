@@ -1,6 +1,6 @@
 {
   "name": "jazz-sdk-testapp-web",
-  "version": "25.63.5",
+  "version": "26.11.23",
   "description": "SaluteJazz SDK Demo Web App",
   "private": true,
   "scripts": {

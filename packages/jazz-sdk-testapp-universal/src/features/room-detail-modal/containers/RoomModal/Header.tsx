@@ -5,6 +5,7 @@ import { Badge, Button, Headline3, IconButton } from '@salutejs/plasma-b2c';
 import { IconClose, IconSettings } from '@salutejs/plasma-icons';
 import styled from 'styled-components/macro';
 
+import { MenuArea } from '../../../../shared/containers/MenuArea';
 import { useGlobalContext } from '../../../../shared/contexts/globalContext';
 import { useQuery } from '../../../../shared/hooks/useQuery';
 import { useRoomContext } from '../../contexts/roomContext';
@@ -75,6 +76,7 @@ export const Header: FC<{ onClose: () => void }> = ({ onClose }) => {
         </Button>
 
         <CustomHeadline3>{title}</CustomHeadline3>
+        <MenuArea menuName="RoomFeatures" />
         {isLobbyEnabled && userPermissions.canManageLobby && (
           <Button
             contentRight={

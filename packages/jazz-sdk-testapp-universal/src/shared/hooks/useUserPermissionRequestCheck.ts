@@ -1,20 +1,25 @@
 import { useCallback, useState } from 'react';
 
-import { JazzRoom, JazzRoomUserPermissionKey } from '@salutejs/jazz-sdk-web';
+import {
+  JazzRoom,
+  JazzRoomUserPermissionRequestKey,
+} from '@salutejs/jazz-sdk-web';
 
 import { useQuery } from './useQuery';
 
 export const useUserPermissionRequestCheck = (
   room: JazzRoom,
 ): {
-  permissionRequestCheck: (permissionType: JazzRoomUserPermissionKey) => void;
+  permissionRequestCheck: (
+    permissionType: JazzRoomUserPermissionRequestKey,
+  ) => void;
   leftTime: number;
 } => {
   const [leftTime, setLeftTime] = useState(0);
   const permissionRequests = useQuery(room.userPermissionRequests);
 
   const permissionRequestCheck = useCallback(
-    (permissionType: JazzRoomUserPermissionKey) => {
+    (permissionType: JazzRoomUserPermissionRequestKey) => {
       setLeftTime(0);
       const userRequest = permissionRequests?.get(permissionType);
       if (userRequest) {

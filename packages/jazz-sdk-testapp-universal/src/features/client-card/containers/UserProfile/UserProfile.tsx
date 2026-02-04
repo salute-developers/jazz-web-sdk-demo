@@ -124,11 +124,11 @@ const ProfileModal: FC<ModalProps> = ({ isOpen, onClose, client }) => {
       <ModalTitle>Profile</ModalTitle>
 
       {userInfo?.name && (
-        <TextField readOnly caption="Your name" value={userInfo?.name} />
+        <TextField readOnly caption="Your name" value={userInfo.name} />
       )}
 
       {userInfo?.email && (
-        <TextField readOnly caption="Your email" value={userInfo?.email} />
+        <TextField readOnly caption="Your email" value={userInfo.email} />
       )}
 
       <ModalActions>

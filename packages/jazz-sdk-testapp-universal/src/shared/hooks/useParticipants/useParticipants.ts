@@ -60,7 +60,7 @@ export function useParticipants(room: JazzRoom): JazzRoomParticipant[] {
     setParticipantSortWeight((state) => {
       let newState = state;
       participants.forEach(({ id }) => {
-        if (room.getParticipantSource(id, 'audio')?.isMuted === false) {
+        if (!room.getParticipantMediaSource(id, 'audio').isMuted()) {
           newState = changeWeight({
             isMuted: false,
             mediaType: 'audio',
@@ -68,7 +68,7 @@ export function useParticipants(room: JazzRoom): JazzRoomParticipant[] {
           })(newState);
         }
 
-        if (room.getParticipantSource(id, 'video')?.isMuted === false) {
+        if (!room.getParticipantMediaSource(id, 'video').isMuted()) {
           newState = changeWeight({
             isMuted: false,
             mediaType: 'video',
@@ -76,7 +76,7 @@ export function useParticipants(room: JazzRoom): JazzRoomParticipant[] {
           })(newState);
         }
 
-        if (room.getParticipantSource(id, 'displayScreen')?.isMuted === false) {
+        if (!room.getParticipantMediaSource(id, 'displayScreen').isMuted()) {
           newState = changeWeight({
             isMuted: false,
             mediaType: 'displayScreen',
