@@ -5,10 +5,8 @@ import { BodyL, Button, Headline3 } from '@salutejs/plasma-b2c';
 import styled from 'styled-components/macro';
 
 import { Modal } from '../../shared/components/Modal';
-import {
-  ErrorEvent,
-  useGlobalContext,
-} from '../../shared/contexts/globalContext';
+import { useGlobalContext } from '../../shared/contexts/globalContext';
+import { ErrorEvent } from '../../shared/types/globalContext';
 
 const StyledHeader = styled(Headline3)`
   margin-bottom: 16px;

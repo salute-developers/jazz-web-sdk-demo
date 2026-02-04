@@ -23,6 +23,7 @@ const CustomIconButton = styled(IconButton)`
   position: absolute;
   right: 16px;
   top: 16px;
+  z-index: 100;
 `;
 
 export type ModalProps = {

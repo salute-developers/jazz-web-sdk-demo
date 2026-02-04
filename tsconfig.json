@@ -3,7 +3,7 @@
     "noEmit": true,
     "target": "esnext",
     "module": "esnext",
-    "moduleResolution": "node",
+    "moduleResolution": "bundler",
     "esModuleInterop": true,
     "lib": ["esnext", "dom", "dom.iterable"],
     "jsx": "react-jsx",

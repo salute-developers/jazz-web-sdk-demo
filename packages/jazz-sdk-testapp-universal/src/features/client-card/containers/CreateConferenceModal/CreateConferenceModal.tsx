@@ -33,8 +33,8 @@ export type CreateConferenceForm = {
   connectToConference: boolean;
   isLobbyEnabled: boolean;
   isGuestEnabled: boolean;
-  jazzNextOnly: boolean;
   userName: string;
+  muted: boolean;
 };
 
 type CreateConferenceModalProps = {
@@ -50,8 +50,8 @@ function getInitialFormState(): CreateConferenceForm {
     connectToConference: true,
     isLobbyEnabled: false,
     isGuestEnabled: true,
-    jazzNextOnly: true,
     userName: '',
+    muted: true,
   };
 }
 
@@ -121,10 +121,10 @@ const Content: FC<{
     }));
   }, []);
 
-  const handleChangeIsJazzNext = useCallback(() => {
+  const handleMediaEnabled = useCallback(() => {
     setForm((form) => ({
       ...form,
-      jazzNextOnly: !form.jazzNextOnly,
+      muted: !form.muted,
     }));
   }, []);
 
@@ -137,7 +137,7 @@ const Content: FC<{
           conferenceName: form.conferenceName,
           userName: form.userName,
         },
-        ['userName'],
+        client.auth.isAuthorised.get() ? ['userName'] : [],
       );
 
       if (Object.keys(errors).length) {
@@ -147,7 +147,7 @@ const Content: FC<{
 
       onCreate(form);
     },
-    [form, onCreate],
+    [form, onCreate, client],
   );
 
   return (
@@ -201,10 +201,11 @@ const Content: FC<{
           </>
         )}
         <Checkbox
-          label="JazzNext meeting"
-          checked={form.jazzNextOnly}
-          onChange={handleChangeIsJazzNext}
+          label="Join with enabled microphone and camera"
+          checked={!form.muted}
+          onChange={handleMediaEnabled}
         />
+
         <Button type="submit" view="accent">
           Create meeting
         </Button>

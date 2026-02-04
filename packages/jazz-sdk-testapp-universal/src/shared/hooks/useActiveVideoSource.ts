@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 
 import {
-  handleEvent,
+  handleQuery,
   JazzRoomMediaSourceState,
   JazzRoomParticipantId,
   JazzRoomVideoSource,
@@ -25,85 +25,48 @@ export function useVideoSources(
 
   useEffect(() => {
     if (!participantId) return;
-    const displayScreenSource = room.getParticipantSource(
+
+    const displayState = room.getParticipantMediaSource(
       participantId,
       'displayScreen',
     );
+    const videoState = room.getParticipantMediaSource(participantId, 'video');
 
-    const videoSource = room.getParticipantSource(participantId, 'video');
+    function handleUpdateState(): void {
+      setState(
+        getVideoSources(
+          { isMuted: videoState.isMuted(), stream: videoState.stream() },
+          { isMuted: displayState.isMuted(), stream: displayState.stream() },
+        ),
+      );
+    }
 
-    setState(getVideoSources(videoSource, displayScreenSource));
+    handleUpdateState();
 
-    const addTrackUnsubscribe = handleEvent(
-      room.event$,
-      'addTrack',
-      ({ payload }) => {
-        if (payload.participantId !== participantId) return;
-
-        if (
-          payload.mediaType === 'displayScreen' ||
-          payload.mediaType === 'video'
-        ) {
-          const displayScreenSource = room.getParticipantSource(
-            participantId,
-            'displayScreen',
-          );
-
-          const videoSource = room.getParticipantSource(participantId, 'video');
-
-          setState(getVideoSources(videoSource, displayScreenSource));
-        }
-      },
+    const subscriberVideoMuted = handleQuery(
+      videoState.isMuted,
+      handleUpdateState,
+    );
+    const subscriberVideoStream = handleQuery(
+      videoState.stream,
+      handleUpdateState,
     );
 
-    const muteChangeUnsubscribe = handleEvent(
-      room.event$,
-      'trackMuteChanged',
-      ({ payload }) => {
-        if (payload.participantId !== participantId) return;
-
-        if (
-          payload.mediaType === 'displayScreen' ||
-          payload.mediaType === 'video'
-        ) {
-          const displayScreenSource = room.getParticipantSource(
-            participantId,
-            'displayScreen',
-          );
-
-          const videoSource = room.getParticipantSource(participantId, 'video');
-
-          setState(getVideoSources(videoSource, displayScreenSource));
-        }
-      },
+    const subscriberDisplayMuted = handleQuery(
+      displayState.isMuted,
+      handleUpdateState,
     );
-
-    const remoteTrackInfoUnsubscribe = handleEvent(
-      room.event$,
-      'remoteTrackInfo',
-      ({ payload }) => {
-        if (payload.participantId !== participantId) return;
-
-        if (
-          payload.mediaType === 'displayScreen' ||
-          payload.mediaType === 'video'
-        ) {
-          const displayScreenSource = room.getParticipantSource(
-            participantId,
-            'displayScreen',
-          );
-
-          const videoSource = room.getParticipantSource(participantId, 'video');
-
-          setState(getVideoSources(videoSource, displayScreenSource));
-        }
-      },
+    const subscriberDisplayStream = handleQuery(
+      displayState.stream,
+      handleUpdateState,
     );
 
     return () => {
-      addTrackUnsubscribe();
-      muteChangeUnsubscribe();
-      remoteTrackInfoUnsubscribe();
+      subscriberVideoMuted();
+      subscriberVideoStream();
+
+      subscriberDisplayMuted();
+      subscriberDisplayStream();
     };
   }, [room, participantId]);
 
@@ -111,26 +74,20 @@ export function useVideoSources(
 }
 
 function getVideoSources(
-  videoSource: JazzRoomMediaSourceState | undefined,
-  displayScreenSource: JazzRoomMediaSourceState | undefined,
+  videoSource: JazzRoomMediaSourceState,
+  displayScreenSource: JazzRoomMediaSourceState,
 ): {
   primary: JazzRoomVideoSource;
   secondary?: JazzRoomVideoSource;
 } {
-  return displayScreenSource
-    ? displayScreenSource.isMuted
+  return displayScreenSource.isMuted
+    ? { primary: 'user' }
+    : !videoSource.isMuted
       ? {
-          primary: 'user',
+          primary: 'display',
+          secondary: 'user',
         }
-      : videoSource && !videoSource.isMuted
-        ? {
-            primary: 'display',
-            secondary: 'user',
-          }
-        : {
-            primary: 'display',
-          }
-    : {
-        primary: 'user',
-      };
+      : {
+          primary: 'display',
+        };
 }

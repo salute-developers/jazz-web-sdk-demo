@@ -1,0 +1,1 @@
+export { SlotArea } from './SlotArea';

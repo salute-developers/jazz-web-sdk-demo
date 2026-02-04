@@ -110,7 +110,7 @@ const RequestPermissionDisplay: FC<{
   room: JazzRoom;
 }> = ({ room, isDisplayMuted }) => {
   const requests = useQuery(room.userPermissionRequests);
-  const { eventBus } = useGlobalContext();
+  const { eventBus, mediaManager } = useGlobalContext();
   const permissions = useQuery(room.userPermissions);
 
   const { leftTime, permissionRequestCheck } =
@@ -139,7 +139,7 @@ const RequestPermissionDisplay: FC<{
   const handleToggleShare = useCallback(async () => {
     try {
       setLoading(true);
-      await room.muteDisplayVideoInput(!isDisplayMuted);
+      await mediaManager.mute(room, 'displayScreen', !isDisplayMuted);
     } catch (error) {
       if (!(error instanceof ScreenShareUserCanceledError)) {
         console.error(error);
@@ -151,7 +151,7 @@ const RequestPermissionDisplay: FC<{
     } finally {
       setLoading(false);
     }
-  }, [room, eventBus, isDisplayMuted]);
+  }, [room, eventBus, isDisplayMuted, mediaManager]);
 
   const isDisabled = isDisplayMuted && !permissions?.canShareMedia;
   const isActiveRequestPermission =
@@ -200,7 +200,7 @@ const RequestPermissionAudio: FC<{
   room: JazzRoom;
 }> = ({ room, isAudioMuted }) => {
   const requests = useQuery(room.userPermissionRequests);
-  const { eventBus } = useGlobalContext();
+  const { eventBus, mediaManager } = useGlobalContext();
   const permissions = useQuery(room.userPermissions);
 
   const { leftTime, permissionRequestCheck } =
@@ -229,14 +229,14 @@ const RequestPermissionAudio: FC<{
   const handleToggleShare = useCallback(async () => {
     try {
       setLoading(true);
-      await room.muteAudioInput(!isAudioMuted);
+      await mediaManager.mute(room, 'audio', !isAudioMuted);
     } catch (error) {
       console.error(error);
       eventBus({ type: 'error', payload: { title: 'Fail toggle mic' } });
     } finally {
       setLoading(false);
     }
-  }, [room, eventBus, isAudioMuted]);
+  }, [room, eventBus, isAudioMuted, mediaManager]);
 
   const isDisabled = isAudioMuted && !permissions?.canShareAudio;
   const isActiveRequestPermission =
@@ -285,7 +285,7 @@ const RequestPermissionVideo: FC<{
   room: JazzRoom;
 }> = ({ room, isVideoMuted }) => {
   const requests = useQuery(room.userPermissionRequests);
-  const { eventBus } = useGlobalContext();
+  const { eventBus, mediaManager } = useGlobalContext();
   const permissions = useQuery(room.userPermissions);
 
   const { leftTime, permissionRequestCheck } =
@@ -314,14 +314,14 @@ const RequestPermissionVideo: FC<{
   const handleToggleShare = useCallback(async () => {
     try {
       setLoading(true);
-      await room.muteVideoInput(!isVideoMuted);
+      await mediaManager.mute(room, 'video', !isVideoMuted);
     } catch (error) {
       console.error(error);
       eventBus({ type: 'error', payload: { title: 'Fail toggle camera' } });
     } finally {
       setLoading(false);
     }
-  }, [room, eventBus, isVideoMuted]);
+  }, [room, eventBus, isVideoMuted, mediaManager]);
 
   const isDisabled = isVideoMuted && !permissions?.canShareCamera;
   const isActiveRequestPermission =

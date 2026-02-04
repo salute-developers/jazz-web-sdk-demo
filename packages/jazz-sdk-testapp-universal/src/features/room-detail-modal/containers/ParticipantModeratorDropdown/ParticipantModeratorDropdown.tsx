@@ -30,13 +30,10 @@ type ParticipantProps = {
 const ModeratorDropdown = forwardRef<HTMLButtonElement, ParticipantProps>(
   (props, ref) => {
     const { participant, isVideoMuted, isAudioMuted, ...otherProps } = props;
-    const { room } = useRoomContext();
+    const { room, eventBus } = useRoomContext();
     const [isOpen, setIsOpen] = useState(false);
-    const rootRef = useRef<HTMLButtonElement>(null);
-    const buttonRef = useForkRef(
-      ref,
-      rootRef,
-    ) as React.RefObject<HTMLButtonElement>;
+    const rootRef = useRef<HTMLButtonElement | null>(null);
+    const buttonRef = useForkRef(ref, rootRef);
 
     const userPermissions = useQuery(room.userPermissions);
 
@@ -73,8 +70,29 @@ const ModeratorDropdown = forwardRef<HTMLButtonElement, ParticipantProps>(
           },
         });
       }
+
+      items.push({
+        label: 'Info',
+        value: 'info',
+        onClick: () => {
+          eventBus({
+            type: 'openParticipantInfoModal',
+            payload: {
+              participantId: participant.id,
+            },
+          });
+        },
+      });
+
       return items;
-    }, [isVideoMuted, isAudioMuted, userPermissions, room, participant]);
+    }, [
+      isVideoMuted,
+      isAudioMuted,
+      userPermissions,
+      room,
+      participant,
+      eventBus,
+    ]);
 
     if (!items.length) {
       return null;
@@ -94,7 +112,7 @@ const ModeratorDropdown = forwardRef<HTMLButtonElement, ParticipantProps>(
         </ButtonCustom>
         <Popover
           placement="left"
-          target={buttonRef}
+          target={buttonRef as React.RefObject<HTMLElement>}
           opened={isOpen}
           usePortal={true}
           onToggle={(open) => {
@@ -126,17 +144,6 @@ export const ParticipantModeratorDropdown = forwardRef<
   HTMLButtonElement,
   ParticipantModeratorDropdownProps
 >((props, ref) => {
-  const { room } = useRoomContext();
-  const localParticipant = useQuery(room.localParticipant);
-
-  if (!localParticipant || localParticipant.role !== 'owner') {
-    return null;
-  }
-
-  if (localParticipant.id === props.participant.id) {
-    return null;
-  }
-
   return <ModeratorDropdown ref={ref} {...props} />;
 });
 

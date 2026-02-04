@@ -3,6 +3,7 @@ import {
   FC,
   FormEventHandler,
   useCallback,
+  useEffect,
   useState,
 } from 'react';
 
@@ -157,6 +158,10 @@ export const NewClientForm: FC = () => {
     },
     [handleCreateClient],
   );
+
+  useEffect(() => {
+    createClient('https://salutejazz.ru');
+  }, [createClient]);
 
   const isPending = status === 'pending';
 

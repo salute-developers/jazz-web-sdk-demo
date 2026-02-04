@@ -7,7 +7,7 @@ import {
 } from 'react';
 
 import { JazzClient } from '@salutejs/jazz-sdk-web';
-import { Button, Headline3, TextField } from '@salutejs/plasma-b2c';
+import { Button, Checkbox, Headline3, TextField } from '@salutejs/plasma-b2c';
 import styled from 'styled-components/macro';
 
 import { Modal } from '../../../../shared/components/Modal';
@@ -40,6 +40,7 @@ export type JoinToConferenceModalForm = {
   password: string;
   roomId: string;
   userName: string;
+  muted: boolean;
 };
 
 export type JoinToConferenceModalProps = {
@@ -54,6 +55,7 @@ function getInitialState(): JoinToConferenceModalForm {
     password: '',
     roomId: '',
     userName: '',
+    muted: true,
   };
 }
 
@@ -117,6 +119,13 @@ export const JoinToConferenceModal: FC<JoinToConferenceModalProps> = ({
     [handleClose, form, onJoin, client],
   );
 
+  const handleMediaEnabled = useCallback(() => {
+    setForm((form) => ({
+      ...form,
+      muted: !form.muted,
+    }));
+  }, []);
+
   return (
     <Modal isOpen={isOpen} onClose={handleClose}>
       <Headline3>Join the meeting</Headline3>
@@ -161,6 +170,11 @@ export const JoinToConferenceModal: FC<JoinToConferenceModalProps> = ({
             status={errors.password ? 'error' : undefined}
           />
         </ConferenceInfoWrapper>
+        <Checkbox
+          label="Join with enabled microphone and camera"
+          checked={!form.muted}
+          onChange={handleMediaEnabled}
+        />
 
         <Footer>
           <Button type="submit" view="accent">

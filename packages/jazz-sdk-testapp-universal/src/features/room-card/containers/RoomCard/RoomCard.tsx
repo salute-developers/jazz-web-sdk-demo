@@ -197,7 +197,7 @@ export const RoomCard: FC<RoomCardProps> = ({
           return;
         }
 
-        if (error.type === 'exceededMaxSdkMeetings') {
+        if (error.type === 'MAX_MEETING_COUNT_EXCEEDED') {
           setErrorMessage('Count of active rooms limit has been reached');
           setViewRoom(false);
           return;
